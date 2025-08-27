@@ -26,11 +26,11 @@ const HeroSection = () => {
       </div>
 
       {/* Image Section */}
-      <div className="hidden md:block flex-1 max-w-md">
+      <div className="hidden md:block flex-1 max-w-md lg:max-w-lg xl:max-w-xl">
         <img 
           src="/HomePage.webp" 
           alt="Highway landscape" 
-          className="w-full h-80 object-cover rounded-2xl shadow-lg"
+          className="w-full h-64 md:h-80 lg:h-96 xl:h-[28rem] object-cover rounded-3xl shadow-2xl"
         />
       </div>
     </div>
