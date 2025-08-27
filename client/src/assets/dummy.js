@@ -16,7 +16,7 @@ export const assets = {
 
 export const destinations = [
   {
-    _id: ObjectId("650000000000000000010001"),
+    _id: "650000000000000000010001",
     id: 1,
     name: "Hahndorf",
     teaser: "Picturesque town with German heritage",
@@ -25,10 +25,10 @@ export const destinations = [
     mainphoto: "/images/hahndorf_main.jpg",
     tripTemplates: [
       {
-        _id: ObjectId("650000000000000000020001"),
+        _id: "650000000000000000020001",
         startPoints: [
-          { id: ObjectId("650000000000000000030001"), name: "Adelaide CBD" },
-          { id: ObjectId("650000000000000000030002"), name: "Glenelg" }
+          { id: "650000000000000000030001", name: "Adelaide CBD" },
+          { id: "650000000000000000030002", name: "Glenelg" }
         ],
         departureTimes: ["09:00", "10:00", "11:00"],
         price: 25,
@@ -37,7 +37,7 @@ export const destinations = [
     ]
   },
   {
-    _id: ObjectId("650000000000000000010002"),
+    _id: "650000000000000000010002",
     name: "Port Elliot",
     teaser: "Coastal town with stunning beaches",
     description: "Visit Port Elliot for its scenic beaches and historic jetty...",
@@ -45,9 +45,9 @@ export const destinations = [
     mainphoto: "/images/porte_main.jpg",
     tripTemplates: [
       {
-        _id: ObjectId("650000000000000000020002"),
+        _id: "650000000000000000020002",
         startPoints: [
-          { id: ObjectId("650000000000000000030001"), name: "Adelaide CBD" }
+          { id: "650000000000000000030001", name: "Adelaide CBD" }
         ],
         departureTimes: ["08:30", "12:30", "16:30"],
         price: 35,
@@ -61,22 +61,22 @@ export const destinations = [
 
 export const tripInstances = [
   {
-    _id: ObjectId("650000000000000000040001"),
-    tripTemplateID: ObjectId("650000000000000000020001"), // Hahndorf trip template
+    _id: "650000000000000000040001",
+    tripTemplateID: "650000000000000000020001", // Hahndorf trip template
     date: "2025-09-15",
     time: "09:00",
     bookedSeats: ["A1","A2"] // booked by alice
   },
   {
-    _id: ObjectId("650000000000000000040002"),
-    tripTemplateID: ObjectId("650000000000000000020001"), // Hahndorf
+    _id: "650000000000000000040002",
+    tripTemplateID: "650000000000000000020001", // Hahndorf
     date: "2025-09-16",
     time: "10:00",
     bookedSeats: ["B1"] // booked by bob
   },
   {
-    _id: ObjectId("650000000000000000040003"),
-    tripTemplateID: ObjectId("650000000000000000020002"), // Port Elliot
+    _id: "650000000000000000040003",
+    tripTemplateID: "650000000000000000020002", // Port Elliot
     date: "2025-09-15",
     time: "12:30",
     bookedSeats: ["A1"] // booked by alice
@@ -87,33 +87,33 @@ export const tripInstances = [
 
 export const bookings = [
   {
-    _id: ObjectId("650000000000000000050001"),
-    userID: ObjectId("650000000000000000000001"), // alice
-    tripInstanceID: ObjectId("650000000000000000040001"), // Hahndorf 09:00
+    _id: "650000000000000000050001",
+    userID: "650000000000000000000001", // alice
+    tripInstanceID: "650000000000000000040001", // Hahndorf 09:00
     seats: ["A1","A2"],
     status: "paid",
     createdAt: new Date("2025-08-27T12:00:00Z")
   },
   {
-    _id: ObjectId("650000000000000000050002"),
-    userID: ObjectId("650000000000000000000002"), // bob
-    tripInstanceID: ObjectId("650000000000000000040002"), // Hahndorf 10:00
+    _id: "650000000000000000050002",
+    userID: "650000000000000000000002", // bob
+    tripInstanceID: "650000000000000000040002", // Hahndorf 10:00
     seats: ["B1"],
     status: "paid",
     createdAt: new Date("2025-08-28T10:00:00Z")
   },
   {
-    _id: ObjectId("650000000000000000050003"),
-    userID: ObjectId("650000000000000000000001"), // alice
-    tripInstanceID: ObjectId("650000000000000000040003"), // Port Elliot 12:30
+    _id: "650000000000000000050003",
+    userID: "650000000000000000000001", // alice
+    tripInstanceID: "650000000000000000040003", // Port Elliot 12:30
     seats: ["A1"],
     status: "paid",
     createdAt: new Date("2025-08-28T09:30:00Z")
   },
   {
-    _id: ObjectId("650000000000000000050004"),
-    userID: ObjectId("650000000000000000000002"), // alice
-    tripInstanceID: ObjectId("650000000000000000040003"), // Port Elliot 12:30
+    _id: "650000000000000000050004",
+    userID: "650000000000000000000002", // alice
+    tripInstanceID: "650000000000000000040003", // Port Elliot 12:30
     seats: ["D1"],
     status: "Cancelled",
     createdAt: new Date("2025-08-28T09:30:00Z")
@@ -124,7 +124,7 @@ export const bookings = [
 
 export const users = [
   {
-    _id: ObjectId("650000000000000000000001"),
+    _id: "650000000000000000000001",
     username: "alice",
     password: "password123",
     firstName: "Alice",
@@ -136,7 +136,7 @@ export const users = [
     createdAt: new Date("2025-08-01T08:00:00Z")
   },
   {
-    _id: ObjectId("650000000000000000000002"),
+    _id: "650000000000000000000002",
     username: "bob",
     password: "password456",
     firstName: "Bob",
@@ -148,7 +148,7 @@ export const users = [
     createdAt: new Date("2025-08-05T09:00:00Z")
   },
   {
-    _id: ObjectId("650000000000000000000003"),
+    _id: "650000000000000000000003",
     username: "admin",
     password: "admin123",
     firstName: "Admin",
