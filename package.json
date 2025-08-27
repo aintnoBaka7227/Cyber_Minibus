@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@clerk/clerk-react": "^5.43.0",
+    "@clerk/nextjs": "^6.31.3",
+    "mongoose": "^8.17.2"
+  }
+}
