@@ -146,7 +146,7 @@ const SeatLayout = () => {
               onClick={() => setSelectedTime({ time })}
               className={`flex items-center gap-2 px-6 py-2 w-max rounded-r-md cursor-pointer transition ${
                 selectedTime?.time === time
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-black"
                   : "hover:bg-primary/20"
               }`}
             >
@@ -166,10 +166,12 @@ const SeatLayout = () => {
         {/* Bus Layout */}
         <div className="bg-white/5 border border-primary/20 rounded-lg p-8 mb-8">
           <div className="flex flex-col items-center">
-            {/* Driver Section Indicator */}
-            <div className="mb-6 text-center">
-              <div className="w-16 h-8 bg-gray-600 rounded-t-lg mb-2"></div>
-              <p className="text-xs text-gray-400">DRIVER</p>
+            {/* Driver Section Indicator - Australian Right Side */}
+            <div className="mb-6 w-full flex justify-end pr-4">
+              <div className="text-center">
+                <div className="w-16 h-8 bg-gray-600 rounded-t-lg mb-2"></div>
+                <p className="text-xs text-gray-400">DRIVER</p>
+              </div>
             </div>
             
             {/* Bus Seats */}
@@ -197,7 +199,7 @@ const SeatLayout = () => {
 
         <button
           onClick={bookTickets}
-          className="flex items-center gap-1 mt-8 px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95"
+          className="flex items-center gap-1 mt-8 px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95 text-black"
         >
           Proceed to Checkout
           <ArrowRightIcon strokeWidth={3} className="w-4 h-4" />

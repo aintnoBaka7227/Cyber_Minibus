@@ -92,11 +92,9 @@ const AdminNavbar = () => {
             onClick={handleDropdownToggle}
             className="flex items-center gap-2 text-white hover:text-primary transition"
           >
-            <img
-              src={assets.profile}
-              alt="User"
-              className="w-8 h-8 rounded-full object-cover"
-            />
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+              <UserIcon className="w-4 h-4 text-white" />
+            </div>
             <ChevronDownIcon className={`w-4 h-4 transition-transform ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
 
