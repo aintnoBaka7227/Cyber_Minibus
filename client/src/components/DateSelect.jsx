@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import BlurCircle from "./BlurCircle";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const DateSelect = ({ id, selectedLocation }) => {
   const navigate = useNavigate();
@@ -25,7 +26,8 @@ const DateSelect = ({ id, selectedLocation }) => {
 
   const onDateClick = (date) => {
     if (!selectedLocation || selectedLocation === "Start from ...") {
-      // Scroll to location selection instead of showing error
+      // Show popup message and scroll to location selection
+      toast.error("Please select your starting point first!");
       const locationSection = document.querySelector('.location-selection-section');
       if (locationSection) {
         locationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -37,7 +39,8 @@ const DateSelect = ({ id, selectedLocation }) => {
 
   const onBookHandler = () => {
     if (!selectedLocation || selectedLocation === "Start from ...") {
-      // Scroll to location selection instead of showing error
+      // Show popup message and scroll to location selection
+      toast.error("Please select your starting point first!");
       const locationSection = document.querySelector('.location-selection-section');
       if (locationSection) {
         locationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -45,7 +48,8 @@ const DateSelect = ({ id, selectedLocation }) => {
       return;
     }
     if (!selected) {
-      // Just return without showing toast, user needs to select date
+      // Show popup message for date selection
+      toast.error("Please select a date first!");
       return;
     }
     navigate(`/routes/${id}/${selected}`);
