@@ -39,7 +39,7 @@ const FeaturedSection = () => {
             navigate("/routes");
             scrollTo(0, 0);
           }}
-          className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-md font-medium cursor-pointer text-black"
+          className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer text-black"
         >
           Show more
         </button>

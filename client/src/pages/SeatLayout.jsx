@@ -7,6 +7,7 @@ import isoTimeFormat from "../lib/isoTimeFormat";
 import BlurCircle from "../components/BlurCircle";
 import toast from "react-hot-toast";
 import { useAppContext } from "../context/AppContext";
+import { dummyDateTimeData, dummyShowsData } from "../assets/assets";
 
 const SeatLayout = () => {
   const groupRows = [
@@ -23,21 +24,9 @@ const SeatLayout = () => {
   const [show, setShow] = useState(null);
   const [occupiedSeats, setOccupiedSeats] = useState([]);
 
-  // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
 
-  const { axios, getToken, user } = useAppContext();
-
-  const getShow = async () => {
-    try {
-      const { data } = await axios.get(`/api/show/${id}`);
-      if (data.success) {
-        setShow(data);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const { user } = useAppContext();
 
   const handleSeatClick = (seatId) => {
     if (!selectedTime) {
@@ -77,21 +66,6 @@ const SeatLayout = () => {
     </div>
   );
 
-  const getOccupiedSeats = async () => {
-    try {
-      const { data } = await axios.get(
-        `/api/booking/seats/${selectedTime.showId}`
-      );
-      if (data.success) {
-        setOccupiedSeats(data.occupiedSeats);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   const bookTickets = async () => {
     try {
       if (!user) return toast.error("Please login to proceed");
@@ -99,29 +73,34 @@ const SeatLayout = () => {
       if (!selectedTime || !selectedSeats.length)
         return toast.error("Please select a time and seats");
 
-      const { data } = await axios.post(
-        "/api/booking/create",
-        { showId: selectedTime.showId, selectedSeats },
-        { headers: { Authorization: `Bearer ${await getToken()}` } }
-      );
-
-      if (data.success) {
-        window.location.href = data.url;
-      } else {
-        toast.error(data.message);
-      }
+      // For demo purposes, just show success message
+      toast.success(`Successfully booked seats: ${selectedSeats.join(", ")} for ${isoTimeFormat(selectedTime.time)}`);
+      
+      // Optional: Navigate back to routes or show confirmation
+      setTimeout(() => {
+        navigate("/routes");
+      }, 2000);
     } catch (error) {
       toast.error(error.message);
     }
   };
 
   useEffect(() => {
-    getShow();
-  }, []);
+    // Load show data on component mount
+    const movie = dummyShowsData.find(show => show._id === id);
+    if (movie) {
+      setShow({
+        movie: movie,
+        dateTime: dummyDateTimeData
+      });
+    }
+  }, [id]);
 
   useEffect(() => {
     if (selectedTime) {
-      getOccupiedSeats();
+      // Use dummy occupied seats for demo purposes
+      const dummyOccupiedSeats = ["A1", "A2", "C5", "E3", "G7", "I2"];
+      setOccupiedSeats(dummyOccupiedSeats);
     }
   }, [selectedTime]);
 

@@ -178,7 +178,7 @@ const AddShows = () => {
           />
           <button
             onClick={handleDateTimeAdd}
-            className="bg-primary/80 text-white px-3 py-2 text-sm rounded-lg hover:bg-primary cursor-pointer"
+            className="bg-primary text-black px-3 py-2 text-sm rounded-full hover:bg-primary/90 cursor-pointer font-medium"
           >
             Add Time
           </button>
@@ -217,7 +217,7 @@ const AddShows = () => {
       <button
         onClick={handleSubmit}
         disabled={addingShow}
-        className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor-pointer"
+        className="bg-primary text-black px-8 py-2 mt-6 rounded-full hover:bg-primary/90 transition-all cursor-pointer font-medium"
       >
         Add Show
       </button>

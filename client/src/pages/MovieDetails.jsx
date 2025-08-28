@@ -16,13 +16,11 @@ const MovieDetails = () => {
   const [show, setShow] = useState(null);
 
   const {
-    shows,
     axios,
     getToken,
     user,
     fetchFavoriteMovies,
     favoriteMovies,
-    image_base_url,
   } = useAppContext();
 
   useEffect(() => {
@@ -35,10 +33,10 @@ const MovieDetails = () => {
       // } catch (error) {
       //   console.log(error);
       // }
-      const movie = dummyShowsData.find(show => show._id === id)
-      if (movie) {
+      const show = dummyShowsData.find(show => show._id === id)
+      if (show) {
         setShow({
-          movie: movie,
+          movie: show,
           dateTime: dummyDateTimeData
         })
       }
@@ -77,7 +75,6 @@ const MovieDetails = () => {
 
         <div className="relative flex flex-col gap-3">
           <BlurCircle top="-100px" left="-100px" />
-          <p className="text-primary">ENGLISH</p>
           <h1 className="text-4xl font-semibold max-w-96 text-balance">
             {show.movie.title}
           </h1>
@@ -94,13 +91,9 @@ const MovieDetails = () => {
           </p>
 
           <div className="flex items-center flex-wrap gap-4 mt-4">
-            <button className="flex items-center gap-2 px-7 py-3 text-sm bg-gray-800 hover:bg-gray-900 transition rounded-md font-medium cursor-pointer active:scale-95">
-              <PlayCircleIcon className="w-5 h-5" />
-              Watch Trailer
-            </button>
             <a
               href="#dateSelect"
-              className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-md font-medium cursor-pointer active:scale-95"
+              className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95 text-black"
             >
               Buy Tickets
             </a>
@@ -120,28 +113,12 @@ const MovieDetails = () => {
         </div>
       </div>
 
-      <p className="text-lg fontmedium mt-20">Your Favorite Cast</p>
-      <div className="overflow-x-auto no-scrollbar mt-8 pb-4">
-        <div className="flex items-center gap-4 w-max px-4">
-          {show.movie.casts.slice(0, 12).map((cast, index) => (
-            <div key={index} className="flex flex-col items-center text-center">
-              <img
-                src={image_base_url + cast.profile_path}
-                alt="profile"
-                className="rounded-full h-20 md:h-20 aspect-square object-cover"
-              />
-              <p className="font-medium text-xs mt-3">{cast.name}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
       <DateSelect dateTime={show.dateTime} id={id} />
 
       <p className="text-lg font-medium mt-20 mb-8">You May Also Like</p>
 
-      <div className="flex flex-wrap max-sm:justify-center gap-8">
-        {shows.slice(0, 4).map((movie, index) => (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+        {dummyShowsData.slice(0, 4).map((movie, index) => (
           <MovieCard key={index} movie={movie} />
         ))}
       </div>
@@ -152,7 +129,7 @@ const MovieDetails = () => {
             navigate("/routes");
             scrollTo(0, 0);
           }}
-          className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-md font-medium cursor-pointer"
+          className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer text-black"
         >
           Show more
         </button>
