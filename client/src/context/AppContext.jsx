@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
@@ -18,6 +19,7 @@ export const AppProvider = ({ children }) => {
   // Use Clerk hooks but provide fallbacks
   const { user } = useUser() || {};
   const { getToken } = useAuth() || {};
+  // eslint-disable-next-line no-unused-vars
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -119,4 +121,5 @@ export const AppProvider = ({ children }) => {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAppContext = () => useContext(AppContext);
