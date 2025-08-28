@@ -22,7 +22,7 @@ export const destinations = [
     teaser: "Picturesque town with German heritage",
     description: "Escape to Hahndorf, a charming historic town in Adelaide Hills...",
     rating: 4.5,
-    mainphoto: "/images/hahndorf_main.jpg",
+    mainphoto: "https://hahndorfsa.org.au/wp-content/uploads/2025/01/hahndorf-german-town-02-1024x681.png",
     tripTemplates: [
       {
         _id: "650000000000000000020001",
@@ -32,7 +32,7 @@ export const destinations = [
         ],
         departureTimes: ["09:00", "10:00", "11:00"],
         price: 25,
-        seatLayout: ["A1","A2","A3","A4","B1","B2","B3","B4"]
+        seatLayout: ["A1","A2","A3","A4","B1","B2","B3","B4","C1","C2","C3","C4","D1","D2","D3","D4","E1","E2","E3","E4","F1","F2","F3","F4","G1","G2","G3","G4","H1","H2","H3","H4"]
       }
     ]
   },
@@ -42,7 +42,7 @@ export const destinations = [
     teaser: "Coastal town with stunning beaches",
     description: "Visit Port Elliot for its scenic beaches and historic jetty...",
     rating: 4.2,
-    mainphoto: "/images/porte_main.jpg",
+    mainphoto: "https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcQ5AMFOctdAM6qBO3KAWKe9zDGQYG1tqBsYGxp0Ta7PpN1-cn442KXDtYGhUV32bhSNohxH8qF8-1CJPvXhci3jTZVE1eHvo0FOvyLToQ",
     tripTemplates: [
       {
         _id: "650000000000000000020002",
@@ -51,7 +51,7 @@ export const destinations = [
         ],
         departureTimes: ["08:30", "12:30", "16:30"],
         price: 35,
-        seatLayout: ["A1","A2","A3","A4","B1","B2","B3","B4"]
+        seatLayout: ["A1","A2","A3","A4","B1","B2","B3","B4","C1","C2","C3","C4","D1","D2","D3","D4","E1","E2","E3","E4","F1","F2","F3","F4","G1","G2","G3","G4","H1","H2","H3","H4"]
       }
     ]
   }
