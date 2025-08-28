@@ -86,6 +86,7 @@ export const AppProvider = ({ children }) => {
       console.error(error);
     }
     */
+  };
   useEffect(() => {
     fetchShows();
     // Initialize admin access and empty favorites for non-auth mode
