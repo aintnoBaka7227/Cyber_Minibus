@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { assets } from "../assets/assets";
 import Loading from "../components/Loading";
 import { ArrowRightIcon, ClockIcon } from "lucide-react";
 import isoTimeFormat from "../lib/isoTimeFormat";
@@ -10,13 +9,8 @@ import { useAppContext } from "../context/AppContext";
 import { dummyDateTimeData, dummyShowsData } from "../assets/assets";
 
 const SeatLayout = () => {
-  const groupRows = [
-    ["A", "B"],
-    ["C", "D"],
-    ["E", "F"],
-    ["G", "H"],
-    ["I", "J"],
-  ];
+  // Bus seating arrangement: 8 rows (A-H), 4 columns (1-4)
+  const busRows = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
   const { id, date } = useParams();
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -30,9 +24,15 @@ const SeatLayout = () => {
 
   const handleSeatClick = (seatId) => {
     if (!selectedTime) {
-      return toast("Please select time first");
+      toast.error("Please select a time first!");
+      // Scroll to the time selection section
+      const timeSection = document.querySelector('.w-60');
+      if (timeSection) {
+        timeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
     }
-    if (!selectedSeats.includes(seatId) && selectedSeats.length > 4) {
+    if (!selectedSeats.includes(seatId) && selectedSeats.length >= 5) {
       return toast("You can only select 5 seats");
     }
     if (occupiedSeats.includes(seatId)) {
@@ -45,18 +45,51 @@ const SeatLayout = () => {
     );
   };
 
-  const renderSeats = (row, count = 9) => (
-    <div key={row} className="flex gap-2 mt-2">
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {Array.from({ length: count }, (_, i) => {
-          const seatId = `${row}${i + 1}`;
+  // Render bus row with aisle
+  const renderBusRow = (row) => (
+    <div key={row} className="flex items-center gap-4 mb-3">
+      <span className="text-sm font-medium w-4">{row}</span>
+      
+      {/* Left side seats (1, 2) */}
+      <div className="flex gap-2">
+        {[1, 2].map((seatNum) => {
+          const seatId = `${row}${seatNum}`;
           return (
             <button
               key={seatId}
               onClick={() => handleSeatClick(seatId)}
-              className={`h-8 w-8 rounded border border-primary/60 cursor-pointer ${
-                selectedSeats.includes(seatId) && "bg-primary text-white"
-              } ${occupiedSeats.includes(seatId) && "opacity-50"}`}
+              className={`h-10 w-10 rounded border-2 border-primary/60 cursor-pointer text-xs font-medium transition-all ${
+                selectedSeats.includes(seatId) 
+                  ? "bg-primary text-white border-primary" 
+                  : "hover:bg-primary/20"
+              } ${occupiedSeats.includes(seatId) && "opacity-50 cursor-not-allowed bg-red-200"}`}
+              disabled={occupiedSeats.includes(seatId)}
+            >
+              {seatId}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Aisle */}
+      <div className="w-8 flex justify-center">
+        <div className="w-px h-8 bg-gray-300"></div>
+      </div>
+
+      {/* Right side seats (3, 4) */}
+      <div className="flex gap-2">
+        {[3, 4].map((seatNum) => {
+          const seatId = `${row}${seatNum}`;
+          return (
+            <button
+              key={seatId}
+              onClick={() => handleSeatClick(seatId)}
+              className={`h-10 w-10 rounded border-2 border-primary/60 cursor-pointer text-xs font-medium transition-all ${
+                selectedSeats.includes(seatId) 
+                  ? "bg-primary text-white border-primary" 
+                  : "hover:bg-primary/20"
+              } ${occupiedSeats.includes(seatId) && "opacity-50 cursor-not-allowed bg-red-200"}`}
+              disabled={occupiedSeats.includes(seatId)}
             >
               {seatId}
             </button>
@@ -98,8 +131,8 @@ const SeatLayout = () => {
 
   useEffect(() => {
     if (selectedTime) {
-      // Use dummy occupied seats for demo purposes
-      const dummyOccupiedSeats = ["A1", "A2", "C5", "E3", "G7", "I2"];
+      // Use dummy occupied seats for demo purposes - updated for bus layout
+      const dummyOccupiedSeats = ["A1", "B3", "C2", "E4", "G1", "H2"];
       setOccupiedSeats(dummyOccupiedSeats);
     }
   }, [selectedTime]);
@@ -127,27 +160,47 @@ const SeatLayout = () => {
         </div>
       </div>
 
-      {/* Seats Layout */}
+      {/* Bus Seats Layout */}
       <div className="relative flex-1 flex flex-col items-center max-md:mt-16">
         <BlurCircle top="-100px" left="-100px" />
         <BlurCircle bottom="0" right="0" />
-        <h1 className="text-2xl font-semibold mb-4">Select your seat</h1>
-        <img src={assets.screenImage} alt="screen" />
-        <p className="text-gray-400 text-sm mb-6">SCREEN SIDE</p>
-        <div className="flex flex-col items-center mt-10 text-xs text-gray-300">
-          <div className="grid grid-cols-2 md:grid-cols-1 gap-8 md:gap-2 mb-6">
-            {groupRows[0].map((row) => renderSeats(row))}
-          </div>
-          <div className="grid grid-cols-2 gap-11">
-            {groupRows.slice(1).map((group, idx) => (
-              <div key={idx}>{group.map((row) => renderSeats(row))}</div>
-            ))}
+        <h1 className="text-2xl font-semibold mb-8">Select your seat</h1>
+        
+        {/* Bus Layout */}
+        <div className="bg-white/5 border border-primary/20 rounded-lg p-8 mb-8">
+          <div className="flex flex-col items-center">
+            {/* Driver Section Indicator */}
+            <div className="mb-6 text-center">
+              <div className="w-16 h-8 bg-gray-600 rounded-t-lg mb-2"></div>
+              <p className="text-xs text-gray-400">DRIVER</p>
+            </div>
+            
+            {/* Bus Seats */}
+            <div className="space-y-1">
+              {busRows.map((row) => renderBusRow(row))}
+            </div>
+            
+            {/* Seat Legend */}
+            <div className="flex items-center gap-6 mt-8 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 border-2 border-primary/60 rounded"></div>
+                <span>Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-primary border-2 border-primary rounded"></div>
+                <span>Selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-red-200 border-2 border-red-300 rounded opacity-50"></div>
+                <span>Occupied</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <button
           onClick={bookTickets}
-          className="flex items-center gap-1 mt-20 px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95"
+          className="flex items-center gap-1 mt-8 px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95"
         >
           Proceed to Checkout
           <ArrowRightIcon strokeWidth={3} className="w-4 h-4" />

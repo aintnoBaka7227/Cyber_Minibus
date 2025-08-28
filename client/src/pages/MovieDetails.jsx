@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BlurCircle from "../components/BlurCircle";
-import { Heart, PlayCircleIcon, StarIcon } from "lucide-react";
+import { Heart, PlayCircleIcon, StarIcon, MapPin, ChevronDown } from "lucide-react";
 import timeFormat from "../lib/timeFormat";
 import DateSelect from "../components/DateSelect";
 import MovieCard from "../components/MovieCard";
@@ -14,6 +14,20 @@ const MovieDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [show, setShow] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState("Start from ...");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const locations = [
+    "Adelaide CBD",
+    "Barossa Valley",
+    "Clare Valley",
+    "Flinders Range",
+    "Hahndorf",
+    "Mount Gambier",
+    "Port Elliot",
+    "Robe",
+    "Whyalla"
+  ];
 
   const {
     axios,
@@ -44,6 +58,22 @@ const MovieDetails = () => {
     
     getShow();
   }, [id]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.location-dropdown')) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   const handleFavorite = async () => {
     try {
@@ -113,7 +143,46 @@ const MovieDetails = () => {
         </div>
       </div>
 
-      <DateSelect dateTime={show.dateTime} id={id} />
+      {/* Location Selection Section */}
+      <div className="mt-20 mb-32">
+        <p className="text-lg font-medium mb-8">Where do you want to start your journey?</p>
+        
+        <div className="flex items-center gap-3 max-w-md">
+          <MapPin className="w-6 h-6 text-gray-400" />
+          
+          <div className="relative flex-1 location-dropdown">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left border rounded-lg transition-colors"
+              style={{ backgroundColor: '#ABD5EA', color: 'black' }}
+            >
+              <span>{selectedLocation}</span>
+              <ChevronDown 
+                className={`w-5 h-5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
+              />
+            </button>
+            
+            {isDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                {locations.map((location) => (
+                  <button
+                    key={location}
+                    onClick={() => {
+                      setSelectedLocation(location);
+                      setIsDropdownOpen(false);
+                    }}
+                    className="w-full px-4 py-3 text-left text-black hover:bg-gray-100 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                  >
+                    {location}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <DateSelect dateTime={show.dateTime} id={id} selectedLocation={selectedLocation} />
 
       <p className="text-lg font-medium mt-20 mb-8">You May Also Like</p>
 
