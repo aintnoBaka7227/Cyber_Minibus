@@ -8,12 +8,12 @@ import MovieCard from "../components/MovieCard";
 import Loading from "../components/Loading";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
-import { dummyDateTimeData, dummyShowsData } from "../assets/assets";
+import { destinations } from "../assets/dummy";
 
 const MovieDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [show, setShow] = useState(null);
+  const [destination, setDestination] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState("Start from ...");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -38,25 +38,13 @@ const MovieDetails = () => {
   } = useAppContext();
 
   useEffect(() => {
-    const getShow = async () => {
-      // try {
-      //   const { data } = await axios.get(`/api/show/${id}`);
-      //   if (data.success) {
-      //     setShow(data);
-      //   }
-      // } catch (error) {
-      //   console.log(error);
-      // }
-      const show = dummyShowsData.find(show => show._id === id)
-      if (show) {
-        setShow({
-          movie: show,
-          dateTime: dummyDateTimeData
-        })
+    const getDestination = () => {
+      const found = destinations.find(dest => dest._id === id);
+      if (found) {
+        setDestination(found);
       }
     };
-    
-    getShow();
+    getDestination();
   }, [id]);
 
   useEffect(() => {
@@ -75,49 +63,45 @@ const MovieDetails = () => {
     };
   }, [isDropdownOpen]);
 
-  const handleFavorite = async () => {
-    try {
-      if (!user) return toast.error("Please login to proceed");
+  // const handleFavorite = async () => {
+  //   try {
+  //     if (!user) return toast.error("Please login to proceed");
 
-      const { data } = await axios.post(
-        "/api/user/update-favorite",
-        { movieId: id },
-        { headers: { Authorization: `Bearer ${await getToken()}` } }
-      );
+  //     const { data } = await axios.post(
+  //       "/api/user/update-favorite",
+  //       { movieId: id },
+  //       { headers: { Authorization: `Bearer ${await getToken()}` } }
+  //     );
 
-      if (data.success) {
-        await fetchFavoriteMovies();
-        toast.success(data.message);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  //     if (data.success) {
+  //       await fetchFavoriteMovies();
+  //       toast.success(data.message);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
-  return show ? (
+  return destination ? (
     <div className="px-6 md:px-16 lg:px-40 pt-30 md:pt-50">
       <div className="flex flex-col md:flex-row gap-8 max-w-6xl mx-auto">
         <img
-          src={show.movie.poster_path}
-          alt="poster"
+          src={destination.mainphoto}
+          alt={destination.name}
           className="max-md:mx-auto rounded-xl h-104 max-w-70 object-cover"
         />
 
         <div className="relative flex flex-col gap-3">
           <BlurCircle top="-100px" left="-100px" />
           <h1 className="text-4xl font-semibold max-w-96 text-balance">
-            {show.movie.title}
+            {destination.name}
           </h1>
           <div className="flex items-center gap-2 text-gray-300">
             <StarIcon className="w-5 h-5 text-primary fill-primary" />
-            {show.movie.vote_average.toFixed(1)} User Rating
+            {destination.rating ? destination.rating.toFixed(1) : "N/A"} User Rating
           </div>
           <p className="text-gray-400 mt-2 text-sm leading-tight max-w-xl">
-            {show.movie.overview}
-          </p>
-
-          <p>
-            {timeFormat(show.movie.runtime)} • {show.movie.genres.map((genre) => genre.name).join(", ")} • {show.movie.release_date.split("-")[0]}
+            {destination.description}
           </p>
 
           <div className="flex items-center flex-wrap gap-4 mt-4">
@@ -125,20 +109,8 @@ const MovieDetails = () => {
               href="#dateSelect"
               className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95 text-black"
             >
-              Buy Tickets
+              Book Trip
             </a>
-            <button
-              onClick={handleFavorite}
-              className="bg-gray-700 p-2.5 rounded-full transition cursor-pointer active:scale-95"
-            >
-              <Heart
-                className={`w-5 h-5 ${
-                  favoriteMovies.find((movie) => movie._id === id)
-                    ? "fill-primary text-primary"
-                    : ""
-                }`}
-              />
-            </button>
           </div>
         </div>
       </div>
@@ -164,31 +136,38 @@ const MovieDetails = () => {
             
             {isDropdownOpen && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                {locations.map((location) => (
+                {destination.tripTemplates[0].startPoints.map((location) => (
                   <button
-                    key={location}
+                    key={location.id}
                     onClick={() => {
-                      setSelectedLocation(location);
+                      setSelectedLocation(location.name);
                       setIsDropdownOpen(false);
                     }}
                     className="w-full px-4 py-3 text-left text-black hover:bg-gray-100 transition-colors first:rounded-t-lg last:rounded-b-lg"
                   >
-                    {location}
+                    {location.name}
                   </button>
                 ))}
               </div>
             )}
           </div>
         </div>
+        {/* Date and Time Selection Section */}
+        <div id="dateSelect" className="mt-12">
+          <DateSelect
+            dateTime={destination.tripTemplates[0].departureTimes}
+            id={id}
+            selectedLocation={selectedLocation}
+          />
+        </div>
       </div>
 
-      <DateSelect dateTime={show.dateTime} id={id} selectedLocation={selectedLocation} />
-
+      {/* You May Also Like Section */}
       <p className="text-lg font-medium mt-20 mb-8">You May Also Like</p>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-        {dummyShowsData.slice(0, 4).map((movie, index) => (
-          <MovieCard key={index} movie={movie} />
+        {destinations.filter(dest => dest._id !== id).slice(0, 4).map((dest, index) => (
+          <MovieCard key={index} destination={dest} />
         ))}
       </div>
 
