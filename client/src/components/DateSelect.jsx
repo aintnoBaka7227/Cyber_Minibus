@@ -4,12 +4,34 @@ import BlurCircle from "./BlurCircle";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-const DateSelect = ({ dateTime, id }) => {
+const DateSelect = ({ dateTime, id, selectedLocation }) => {
   const navigate = useNavigate();
 
   const [selected, setSelected] = useState(null);
 
+  const onDateClick = (date) => {
+    if (!selectedLocation || selectedLocation === "Start from ...") {
+      toast.error("Please select your starting point first!");
+      // Scroll to the location selection section
+      const locationSection = document.querySelector('.location-dropdown');
+      if (locationSection) {
+        locationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    setSelected(date);
+  };
+
   const onBookHandler = () => {
+    if (!selectedLocation || selectedLocation === "Start from ...") {
+      toast.error("Please select your starting point first!");
+      // Scroll to the location selection section
+      const locationSection = document.querySelector('.location-dropdown');
+      if (locationSection) {
+        locationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
     if (!selected) {
       return toast("Please select a date");
     }
@@ -29,7 +51,7 @@ const DateSelect = ({ dateTime, id }) => {
             <span className="grid grid-cols-3 md:flex flex-wrap md:max-w-lg gap-4">
               {Object.keys(dateTime).map((date) => (
                 <button
-                  onClick={() => setSelected(date)}
+                  onClick={() => onDateClick(date)}
                   key={date}
                   className={`flex flex-col items-center justify-center h-14 w-14 aspect-square rounded cursor-pointer ${
                     selected === date
