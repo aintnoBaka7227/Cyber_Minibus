@@ -17,7 +17,6 @@ export const assets = {
 export const destinations = [
   {
     _id: "650000000000000000010001",
-    id: 1,
     name: "Hahndorf",
     teaser: "Picturesque town with German heritage",
     description: "Escape to Hahndorf, a charming historic town in Adelaide Hills...",

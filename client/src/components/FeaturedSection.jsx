@@ -4,11 +4,12 @@ import BlurCircle from "./BlurCircle";
 import MovieCard from "./MovieCard";
 import { useAppContext } from "../context/AppContext";
 import { dummyShowsData } from "../assets/assets";
+import { destinations } from "../assets/dummy";
 
 const FeaturedSection = () => {
   const navigate = useNavigate();
   // eslint-disable-next-line no-unused-vars
-  const { shows } = useAppContext();
+  //const { shows } = useAppContext();
 
   return (
     <div className="px-6 md:px-16 lg:px-24 xl:px-44 overflow-hidden">
@@ -28,9 +29,10 @@ const FeaturedSection = () => {
       </div>
 
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8 justify-items-center'>
-        {dummyShowsData.slice(0, 4).map((show) => (
-          <MovieCard key={show._id} movie={show} />
-        ))}
+        {destinations.map((destination) => {
+          console.log('FeaturedSection destination:', destination);
+          return <MovieCard key={destination._id} destination={destination} />;
+        })}
       </div>
 
       <div className="flex justify-center mt-20">
