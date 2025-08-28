@@ -12,7 +12,7 @@ const SeatLayout = () => {
   // Bus seating arrangement: 8 rows (A-H), 4 columns (1-4)
   const busRows = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
-  const { id, date } = useParams();
+  const { id } = useParams();
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [selectedTime, setSelectedTime] = useState(null);
   const [destination, setDestination] = useState(null);

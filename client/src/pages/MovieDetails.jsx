@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BlurCircle from "../components/BlurCircle";
-import { Heart, PlayCircleIcon, StarIcon, MapPin, ChevronDown } from "lucide-react";
-import timeFormat from "../lib/timeFormat";
+import { StarIcon, MapPin, ChevronDown } from "lucide-react";
 import DateSelect from "../components/DateSelect";
 import MovieCard from "../components/MovieCard";
-import Loading from "../components/Loading";
 import { useAppContext } from "../context/AppContext";
-import toast from "react-hot-toast";
 import { destinations } from "../assets/dummy";
 
 const MovieDetails = () => {
@@ -17,6 +14,7 @@ const MovieDetails = () => {
   const [selectedLocation, setSelectedLocation] = useState("Start from ...");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // eslint-disable-next-line no-unused-vars
   const locations = [
     "Adelaide CBD",
     "Barossa Valley",
@@ -29,13 +27,7 @@ const MovieDetails = () => {
     "Whyalla"
   ];
 
-  const {
-    axios,
-    getToken,
-    user,
-    fetchFavoriteMovies,
-    favoriteMovies,
-  } = useAppContext();
+  useAppContext();
 
   useEffect(() => {
     const getDestination = () => {

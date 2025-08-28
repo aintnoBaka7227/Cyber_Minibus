@@ -4,7 +4,7 @@ import BlurCircle from "./BlurCircle";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-const DateSelect = ({ dateTime, id, selectedLocation }) => {
+const DateSelect = ({ id, selectedLocation }) => {
   const navigate = useNavigate();
 
   const [selected, setSelected] = useState(null);
