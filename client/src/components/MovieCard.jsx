@@ -9,7 +9,7 @@ const MovieCard = ({ movie }) => {
   const { image_base_url } = useAppContext();
 
   return (
-    <div className="flex flex-col justify-between p-3 bg-gray-800 rounded-2xl hover:-translate-y-1 transition duration-300 w-full max-w-xs">
+    <div className="flex flex-col justify-between p-3 bg-gray-800 rounded-2xl hover:-translate-y-1 transition duration-300 w-full">
       <img
         onClick={() => {
           navigate(`/routes/${movie._id}`);
@@ -17,7 +17,7 @@ const MovieCard = ({ movie }) => {
         }}
         src={image_base_url + movie.backdrop_path}
         alt="poster"
-        className="rounded-lg h-52 w-full object-cover object-right-bottom cursor-pointer"
+        className="rounded-lg h-40 sm:h-48 md:h-52 w-full object-cover object-right-bottom cursor-pointer"
       />
 
       <p className="font-semibold mt-2 truncate">{movie.title}</p>
