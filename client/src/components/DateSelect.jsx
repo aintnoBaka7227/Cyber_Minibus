@@ -8,24 +8,37 @@ const DateSelect = ({ dateTime, id, selectedLocation }) => {
   const navigate = useNavigate();
 
   const [selected, setSelected] = useState(null);
+  // Generate all dates from today to end of year
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const endOfYear = new Date(today.getFullYear(), 11, 31);
+  const allDates = [];
+  let d = new Date(today);
+  while (d <= endOfYear) {
+    allDates.push(new Date(d));
+    d.setDate(d.getDate() + 1);
+  }
+
+  // State for the start index of the 5-day window
+  const [startIdx, setStartIdx] = useState(0);
+  // Get the 5-day window
+  const visibleDates = allDates.slice(startIdx, startIdx + 5);
 
   const onDateClick = (date) => {
     if (!selectedLocation || selectedLocation === "Start from ...") {
       toast.error("Please select your starting point first!");
-      // Scroll to the location selection section
       const locationSection = document.querySelector('.location-dropdown');
       if (locationSection) {
         locationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       return;
     }
-    setSelected(date);
+    setSelected(date.toISOString().slice(0, 10)); // Only record date (YYYY-MM-DD)
   };
 
   const onBookHandler = () => {
     if (!selectedLocation || selectedLocation === "Start from ...") {
       toast.error("Please select your starting point first!");
-      // Scroll to the location selection section
       const locationSection = document.querySelector('.location-dropdown');
       if (locationSection) {
         locationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -47,26 +60,36 @@ const DateSelect = ({ dateTime, id, selectedLocation }) => {
         <div>
           <p className="text-lg font-semibold">Choose Date</p>
           <div className="flex items-center gap-6 text-sm mt-5">
-            <ChevronLeftIcon width={28} />
+            <button
+              onClick={() => setStartIdx(Math.max(0, startIdx - 1))}
+              disabled={startIdx === 0}
+              className="px-2 py-1 text-lg bg-transparent text-white disabled:opacity-30"
+            >
+              <ChevronLeftIcon width={28} />
+            </button>
             <span className="grid grid-cols-3 md:flex flex-wrap md:max-w-lg gap-4">
-              {Object.keys(dateTime).map((date) => (
+              {visibleDates.map((date) => (
                 <button
                   onClick={() => onDateClick(date)}
-                  key={date}
+                  key={date.toISOString()}
                   className={`flex flex-col items-center justify-center h-14 w-14 aspect-square rounded cursor-pointer ${
-                    selected === date
+                    selected === date.toISOString().slice(0, 10)
                       ? "bg-primary text-white"
                       : "border border-primary/70"
                   }`}
                 >
-                  <span>{new Date(date).getDate()}</span>
-                  <span>
-                    {new Date(date).toLocaleString("en-US", { month: "short" })}
-                  </span>
+                  <span>{date.getDate()}</span>
+                  <span>{date.toLocaleString("en-US", { month: "short" })}</span>
                 </button>
               ))}
             </span>
-            <ChevronRightIcon width={28} />
+            <button
+              onClick={() => setStartIdx(Math.min(allDates.length - 5, startIdx + 1))}
+              disabled={startIdx >= allDates.length - 5}
+              className="px-2 py-1 text-lg bg-transparent text-white disabled:opacity-30"
+            >
+              <ChevronRightIcon width={28} />
+            </button>
           </div>
         </div>
         <button
