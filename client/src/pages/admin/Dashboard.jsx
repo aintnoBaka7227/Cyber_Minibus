@@ -1,131 +1,77 @@
 import {
   ChartLineIcon,
   CircleDollarSignIcon,
-  PlayCircleIcon,
-  StarIcon,
+  RouteIcon,
   UsersIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import Loading from "../../components/Loading";
-import Title from "../../components/admin/Title";
-import BlurCircle from "../../components/BlurCircle";
-import { dateFormat } from "../../lib/dateFormat";
-import { useAppContext } from "../../context/AppContext";
-import toast from "react-hot-toast";
 
 const Dashboard = () => {
-  const { axios, getToken, user, image_base_url } = useAppContext();
-
-  const currency = import.meta.env.VITE_CURRENCY;
-
-  const [dashboardData, setDashboardData] = useState({
-    totalBookings: 0,
-    totalRevenue: 0,
-    activeShows: [],
-    totalUser: 0,
-  });
-
-  const [loading, setLoading] = useState(true);
-
+  // Placeholder data - will be replaced with real data when authentication is implemented
   const dashboardCards = [
     {
       title: "Total Bookings",
-      value: dashboardData.totalBookings || "0",
+      value: "0",
       icon: ChartLineIcon,
     },
     {
       title: "Total Revenue",
-      value: currency + dashboardData.totalRevenue || "0",
+      value: "$0",
       icon: CircleDollarSignIcon,
     },
     {
-      title: "Active Shows",
-      value: dashboardData.activeShows.length || "0",
-      icon: PlayCircleIcon,
+      title: "Active Routes",
+      value: "0",
+      icon: RouteIcon,
     },
     {
       title: "Total Users",
-      value: dashboardData.totalUser || "0",
+      value: "0",
       icon: UsersIcon,
     },
   ];
 
-  const fetchDashboardData = async () => {
-    try {
-      const { data } = await axios.get("/api/admin/dashboard", {
-        headers: { Authorization: `Bearer ${await getToken()}` },
-      });
-
-      if (data.success) {
-        setDashboardData(data.dashboardData);
-        setLoading(false);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error("Error fetching dashboard data:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchDashboardData();
-    }
-  }, [user]);
-
-  return !loading ? (
-    <>
-      <Title text1="Admin" text2="Dashboard" />
-      <div className="relative flex flex-wrap gap-4 mt-6">
-        <BlurCircle top="-100px" left="0" />
-        <div className="flex flex-wrap gap-4 w-full">
-          {dashboardCards.map((card, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between px-4 py-3 bg-primary/10 border border-primary/20 rounded-md max-w-50 w-full"
-            >
-              <div>
-                <h1 className="text-sm">{card.title}</h1>
-                <p className="text-xl font-medium mt-1">{card.value}</p>
-              </div>
-              <card.icon className="w-6 h-6" />
-            </div>
-          ))}
-        </div>
+  return (
+    <div className="p-6">
+      {/* Dashboard Title */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">
+          <span className="text-white">Admin </span>
+          <span className="text-[#ABD5EA] font-bold">Dashboard</span>
+        </h1>
       </div>
 
-      <p className="mt-10 text-lg font-medium">Active Shows</p>
-      <div className="relative flex flex-wrap gap-6 mt-4 max-w-5xl">
-        <BlurCircle top="100px" left="-10%" />
-        {dashboardData.activeShows.map((show) => (
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {dashboardCards.map((card, index) => (
           <div
-            key={show._id}
-            className="w-55 rounded-lg overflow-hidden h-full pb-3 bg-primary/10 border border-primary/20 hover:-translate-y-1 transition duration-300"
+            key={index}
+            className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 hover:bg-white/15 transition-all duration-300"
           >
-            <img
-              src={image_base_url + show.movie.poster_path}
-              alt="poster"
-              className="h-60 w-full object-cover"
-            />
-            <p className="font-medium p-2 truncate">{show.movie.title}</p>
-            <div className="flex items-center justify-between px-2">
-              <p className="text-lg font-medium">
-                {currency} {show.showPrice}
-              </p>
-              <p className="flex items-center gap-1 text-sm text-gray-400 mt-1 pr-1">
-                <StarIcon className="w-4 h-4 text-primary fill-primary" />
-                {show.movie.vote_average.toFixed(1)}
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-white text-sm font-medium opacity-80 mb-2">
+                  {card.title}
+                </h3>
+                <p className="text-white text-2xl font-bold">{card.value}</p>
+              </div>
+              <div className="bg-[#ABD5EA]/20 p-3 rounded-lg">
+                <card.icon className="w-6 h-6 text-[#ABD5EA]" />
+              </div>
             </div>
-            <p className="px-2 pt-2 text-sm text-gray-500">
-              {dateFormat(show.showDateTime)}
-            </p>
           </div>
         ))}
       </div>
-    </>
-  ) : (
-    <Loading />
+
+      {/* Future sections can be added here */}
+      <div className="mt-12">
+        <h2 className="text-xl font-semibold text-white mb-4">Recent Activity</h2>
+        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6">
+          <p className="text-white/70 text-center py-8">
+            Recent activity data will be displayed here when connected to the database.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 

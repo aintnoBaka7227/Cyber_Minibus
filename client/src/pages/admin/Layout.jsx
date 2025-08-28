@@ -1,5 +1,6 @@
 import AdminNavbar from "../../components/admin/AdminNavbar";
 import AdminSidebar from "../../components/admin/AdminSidebar";
+import Footer from "../../components/Footer";
 import { Outlet } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import { useEffect } from "react";
@@ -10,15 +11,18 @@ const Layout = () => {
 
   useEffect(() => {
     fetchIsAdmin();
-  }, []);
+  }, [fetchIsAdmin]);
 
   return isAdmin ? (
     <>
       <AdminNavbar />
-      <div className="flex">
+      <div className="flex min-h-screen pt-20">
         <AdminSidebar />
-        <div className="flex-1 px-4 py-10 md:px-10 h-[calc(100vh-64px)] overflow-y-auto">
-          <Outlet />
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 px-6 md:px-10 py-8">
+            <Outlet />
+          </div>
+          <Footer />
         </div>
       </div>
     </>
