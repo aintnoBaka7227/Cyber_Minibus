@@ -37,8 +37,8 @@ const App = () => {
         {/* Admin Routes */}
         <Route path="/admin/*" element={<Layout />}>
           <Route index element={<Dashboard />} />
-          <Route path="add-shows" element={<AddShows />} />
-          <Route path="list-shows" element={<ListShows />} />
+          <Route path="add-routes" element={<AddShows />} />
+          <Route path="list-routes" element={<ListShows />} />
           <Route path="list-bookings" element={<ListBookings />} />
           <Route path="list-users" element={<ListUsers />} />
         </Route>

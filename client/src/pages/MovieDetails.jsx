@@ -27,7 +27,13 @@ const MovieDetails = () => {
     "Whyalla"
   ];
 
-  useAppContext();
+  const handleBookTrip = () => {
+    // Always scroll to location selection first
+    const locationSection = document.querySelector('.location-selection-section');
+    if (locationSection) {
+      locationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };  useAppContext();
 
   useEffect(() => {
     const getDestination = () => {
@@ -97,18 +103,18 @@ const MovieDetails = () => {
           </p>
 
           <div className="flex items-center flex-wrap gap-4 mt-4">
-            <a
-              href="#dateSelect"
+            <button
+              onClick={handleBookTrip}
               className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95 text-black"
             >
               Book Trip
-            </a>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Location Selection Section */}
-      <div className="mt-20 mb-32">
+      <div className="mt-20 mb-32 location-selection-section">
         <p className="text-lg font-medium mb-8">Where do you want to start your journey?</p>
         
         <div className="flex items-center gap-3 max-w-md">
