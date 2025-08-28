@@ -1,4 +1,5 @@
 import { assets } from "../assets/assets";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -15,16 +16,13 @@ const Footer = () => {
             <h2 className="font-semibold mb-5">Company</h2>
             <ul className="text-sm space-y-2">
               <li>
-                <a href="#">Home</a>
+                <Link to="/" onClick={() => scrollTo(0, 0)}>Home</Link>
               </li>
               <li>
-                <a href="#">About us</a>
+                <Link to="/about-us" onClick={() => scrollTo(0, 0)}>About us</Link>
               </li>
               <li>
-                <a href="#">Contact us</a>
-              </li>
-              <li>
-                <a href="#">Privacy policy</a>
+                <Link to="/about-us" onClick={() => scrollTo(0, 0)}>Contact us</Link>
               </li>
             </ul>
           </div>
