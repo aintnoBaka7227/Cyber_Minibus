@@ -6,9 +6,9 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <div className='flex items-center justify-between gap-8 px-6 md:px-16 lg:px-36 h-screen bg-black'>
+    <div className='flex items-center justify-between gap-4 md:gap-6 lg:gap-8 xl:gap-12 px-6 md:px-16 lg:px-36 h-screen max-w-7xl mx-auto'>
       {/* Content Section */}
-      <div className="flex flex-col items-start justify-center gap-4 flex-1 max-w-lg">
+      <div className="flex flex-col items-start justify-center gap-4 flex-1 max-w-lg lg:max-w-xl">
         <h1 className="text-5xl md:text-[70px] md:leading-18 font-semibold">
           CyberMinibus
         </h1>
@@ -26,11 +26,11 @@ const HeroSection = () => {
       </div>
 
       {/* Image Section */}
-      <div className="hidden md:block flex-1 max-w-md">
+      <div className="hidden md:block flex-1 max-w-sm lg:max-w-md xl:max-w-lg">
         <img 
           src="/HomePage.webp" 
           alt="Highway landscape" 
-          className="w-full h-80 object-cover rounded-2xl shadow-lg"
+          className="w-full h-64 md:h-80 lg:h-96 xl:h-[28rem] object-cover rounded-3xl shadow-2xl"
         />
       </div>
     </div>
