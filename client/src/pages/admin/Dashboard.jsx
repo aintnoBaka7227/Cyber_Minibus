@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { destinations } from "../../assets/dummy";
-import MovieCard from "../../components/MovieCard";
+import DestinationCard from "../../components/DestinationCard";
 
 const Dashboard = () => {
   const [showAll, setShowAll] = useState(false);
@@ -75,7 +75,7 @@ const Dashboard = () => {
         <h2 className="text-2xl font-bold text-white mb-6">Active Trips</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {displayedDestinations.map((destination) => (
-            <MovieCard destination={destination} key={destination._id} />
+            <DestinationCard destination={destination} key={destination._id} />
           ))}
         </div>
         

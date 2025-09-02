@@ -1,5 +1,5 @@
 import BlurCircle from "../components/BlurCircle";
-import MovieCard from "../components/MovieCard";
+import MovieCard from "../components/DestinationCard";
 import { destinations } from "../assets/dummy";
 
 const Movies = () => {

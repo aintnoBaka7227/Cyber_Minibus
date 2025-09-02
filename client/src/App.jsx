@@ -13,11 +13,11 @@ import { Toaster } from "react-hot-toast";
 import Footer from "./components/Footer";
 import Layout from "./pages/admin/Layout";
 import Dashboard from "./pages/admin/Dashboard";
-import AddShows from "./pages/admin/AddShows";
-import ListShows from "./pages/admin/ListShows";
+import AddDestinations from "./pages/admin/AddDestinations";
 import ListBookings from "./pages/admin/ListBookings";
 import ListUsers from "./pages/admin/ListUsers";
 import Loading from "./components/Loading";
+import ListDestinations from "./pages/admin/ListDestinations";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
@@ -41,8 +41,8 @@ const App = () => {
         {/* Admin Routes */}
         <Route path="/admin/*" element={<Layout />}>
           <Route index element={<Dashboard />} />
-          <Route path="add-routes" element={<AddShows />} />
-          <Route path="list-routes" element={<ListShows />} />
+          <Route path="add-routes" element={<AddDestinations />} />
+          <Route path="list-routes" element={<ListDestinations />} />
           <Route path="list-bookings" element={<ListBookings />} />
           <Route path="list-users" element={<ListUsers />} />
         </Route>

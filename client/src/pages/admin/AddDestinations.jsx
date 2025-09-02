@@ -6,7 +6,7 @@ import { kConverter } from "../../lib/kConverter";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 
-const AddShows = () => {
+const addDestinations = () => {
   const { axios, getToken, user, image_base_url } = useAppContext();
 
   const currency = import.meta.env.VITE_CURRENCY;
@@ -231,4 +231,4 @@ const AddShows = () => {
   );
 };
 
-export default AddShows;
+export default addDestinations;

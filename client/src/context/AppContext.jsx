@@ -55,6 +55,10 @@ export const AppProvider = ({ children }) => {
     setIsAuthenticated(false);
     setIsAdmin(false);
     toast.success("Logged out");
+    // Ensure we leave any protected/admin routes
+    try {
+      navigate("/");
+    } catch (_e) {}
   };
 
   // register
@@ -106,25 +110,25 @@ export const AppProvider = ({ children }) => {
       return admin;
     }
 
-    // try {
-    //   const { data } = await axios.get("/api/admin/is-admin");
-    //   const admin = Boolean(data?.isAdmin);
-    //   setIsAdmin(admin);
-    //   if (!admin && location.pathname.startsWith("/admin")) {
-    //     navigate("/");
-    //     toast.error("You are not authorized to access admin dashboard");
-    //   }
-    //   return admin;
-    // } catch (error) {
-    //   console.error(error);
-    //   const admin = user?.role === "admin";
-    //   setIsAdmin(Boolean(admin));
-    //   if (!admin && location.pathname.startsWith("/admin")) {
-    //     navigate("/");
-    //     toast.error("You are not authorized to access admin dashboard");
-    //   }
-    //   return Boolean(admin);
-    // }
+    try {
+      const { data } = await axios.get("/api/admin/is-admin");
+      const admin = Boolean(data?.isAdmin);
+      setIsAdmin(admin);
+      if (!admin && location.pathname.startsWith("/admin")) {
+        navigate("/");
+        toast.error("You are not authorized to access admin dashboard");
+      }
+      return admin;
+    } catch (error) {
+      console.error(error);
+      const admin = user?.role === "admin";
+      setIsAdmin(Boolean(admin));
+      if (!admin && location.pathname.startsWith("/admin")) {
+        navigate("/");
+        toast.error("You are not authorized to access admin dashboard");
+      }
+      return Boolean(admin);
+    }
   };
   
     

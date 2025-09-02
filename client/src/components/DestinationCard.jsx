@@ -1,7 +1,7 @@
 import { StarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const MovieCard = ({ destination }) => {
+const DestinationCard = ({ destination }) => {
   console.log(destination)
   if (!destination) return <div>Loading...</div>;
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -45,4 +45,4 @@ const MovieCard = ({ destination }) => {
   );
 };
 
-export default MovieCard;
+export default DestinationCard;

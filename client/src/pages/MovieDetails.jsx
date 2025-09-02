@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import BlurCircle from "../components/BlurCircle";
 import { StarIcon, MapPin, ChevronDown } from "lucide-react";
 import DateSelect from "../components/DateSelect";
-import MovieCard from "../components/MovieCard";
+import MovieCard from "../components/DestinationCard";
 import { useAppContext } from "../context/AppContext";
 import { destinations } from "../assets/dummy";
 
