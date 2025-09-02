@@ -19,6 +19,10 @@ const AddShows = () => {
 
   const fetchNowPlayingMovies = async () => {
     try {
+      if (import.meta.env.VITE_ENABLE_MOCK_AUTH === "true") {
+        setNowPlayingMovies([]);
+        return;
+      }
       const { data } = await axios.get("/api/show/now-playing", {
         headers: { Authorization: `Bearer ${await getToken()}` },
       });

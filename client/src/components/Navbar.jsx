@@ -1,18 +1,15 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { MenuIcon, TicketPlus, XIcon } from "lucide-react";
-// import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
+import { MenuIcon, TicketPlus, XIcon, LogOut, User } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  // const { user } = useUser();
-  // const { openSignIn } = useClerk();
-
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
 
-  const { favoriteMovies } = useAppContext();
+  const { user, isAuthenticated, logout } = useAppContext();
 
   return (
     <div className="fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-16 lg:px-36 py-5">
@@ -57,37 +54,63 @@ const Navbar = () => {
         >
           About Us
         </Link>
-        {favoriteMovies.length > 0 && (
-          <Link
-            onClick={() => {
-              scrollTo(0, 0);
-              setIsOpen(false);
-            }}
-            to="/favorite"
-          >
-            Favorites
-          </Link>
-        )}
       </div>
 
       <div className="flex items-center gap-8">
-        {!user ? (
-          <button
-            onClick={openSignIn}
-            className="px-4 py-1 sm:px-7 sm:py-2 bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer text-black"
-          >
-            Login
-          </button>
+        {!isAuthenticated ? (
+          <div className="flex gap-4">
+            <button
+              onClick={() => navigate("/login")}
+              className="px-4 py-1 sm:px-7 sm:py-2 bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer text-black"
+            >
+              Login
+            </button>
+            <button
+              onClick={() => navigate("/register")}
+              className="px-4 py-1 sm:px-7 sm:py-2 border border-primary text-primary hover:bg-primary hover:text-black transition rounded-full font-medium cursor-pointer"
+            >
+              Register
+            </button>
+          </div>
         ) : (
-          <UserButton>
-            <UserButton.MenuItems>
-              <UserButton.Action
-                label="My Bookings"
-                labelIcon={<TicketPlus width={15} />}
-                onClick={() => navigate("/my-bookings")}
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-gray-300/20 hover:bg-white/20 transition"
+            >
+              <img 
+                src={user?.image || "/src/assets/profile.png"} 
+                alt="Profile" 
+                className="w-8 h-8 rounded-full"
               />
-            </UserButton.MenuItems>
-          </UserButton>
+              <span className="text-white">{user?.name || "User"}</span>
+            </button>
+            
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-primary rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <button
+                  onClick={() => {
+                    navigate("/my-bookings");
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 text-black flex items-center gap-2"
+                >
+                  <TicketPlus width={15} />
+                  My Bookings
+                </button>
+                <button
+                  onClick={() => {
+                    logout();
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 text-black flex items-center gap-2"
+                >
+                  <LogOut width={15} />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

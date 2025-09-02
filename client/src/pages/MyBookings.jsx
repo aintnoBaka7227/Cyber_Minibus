@@ -16,6 +16,11 @@ const MyBookings = () => {
 
   const getMyBookings = async () => {
     try {
+      if (import.meta.env.VITE_ENABLE_MOCK_AUTH === "true") {
+        setBookings([]);
+        setIsLoading(false);
+        return;
+      }
       const { data } = await axios.get("/api/user/bookings", {
         headers: { Authorization: `Bearer ${await getToken()}` },
       });

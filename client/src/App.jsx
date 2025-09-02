@@ -6,6 +6,8 @@ import MovieDetails from "./pages/MovieDetails";
 import SeatLayout from "./pages/SeatLayout";
 import MyBookings from "./pages/MyBookings";
 import Favorite from "./pages/Favorite";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import AboutUs from "./pages/AboutUs";
 import { Toaster } from "react-hot-toast";
 import Footer from "./components/Footer";
@@ -33,6 +35,8 @@ const App = () => {
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/loading/:nextUrl" element={<Loading />} />
         <Route path="/favorite" element={<Favorite />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Admin Routes */}
         <Route path="/admin/*" element={<Layout />}>

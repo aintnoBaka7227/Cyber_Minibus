@@ -15,6 +15,11 @@ const ListBookings = () => {
   useEffect(() => {
     const getAllBookings = async () => {
       try {
+        if (import.meta.env.VITE_ENABLE_MOCK_AUTH === "true") {
+          setBookings([]);
+          setIsLoading(false);
+          return;
+        }
         const { data } = await axios.get("/api/admin/all-bookings", {
           headers: { Authorization: `Bearer ${await getToken()}` },
         });

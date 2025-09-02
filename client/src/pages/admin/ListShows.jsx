@@ -15,6 +15,11 @@ const ListShows = () => {
   useEffect(() => {
     const getAllShow = async () => {
       try {
+        if (import.meta.env.VITE_ENABLE_MOCK_AUTH === "true") {
+          setShows([]);
+          setLoading(false);
+          return;
+        }
         const { data } = await axios.get("/api/admin/all-shows", {
           headers: { Authorization: `Bearer ${await getToken()}` },
         });
