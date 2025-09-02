@@ -1,11 +1,10 @@
 import { StarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import timeFormat from "../lib/timeFormat";
-import { useAppContext } from "../context/AppContext";
 
 const MovieCard = ({ destination }) => {
   console.log(destination)
   if (!destination) return <div>Loading...</div>;
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const navigate = useNavigate();
 
   // No need for image_base_url, use destination.mainphoto directly

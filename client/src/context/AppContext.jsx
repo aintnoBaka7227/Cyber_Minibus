@@ -53,19 +53,19 @@ export const AppProvider = ({ children }) => {
     */
   };
 
-  // const fetchShows = async () => {
-  //   try {
-  //     const { data } = await axios.get("/api/show/all");
-  //
-  //     if (data.success) {
-  //       setShows(data.shows);
-  //     } else {
-  //       toast.error(data.message);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
+  const fetchShows = async () => {
+    try {
+      const { data } = await axios.get("/api/show/all");
+
+      if (data.success) {
+        setShows(data.shows);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const fetchFavoriteMovies = async () => {
     // Bypass favorite movies for now
@@ -111,7 +111,7 @@ export const AppProvider = ({ children }) => {
     getToken: getToken || (() => Promise.resolve(null)), // Provide fallback getToken
     navigate,
     isAdmin,
-  // shows,
+    shows,
     favoriteMovies,
     fetchFavoriteMovies,
     image_base_url,

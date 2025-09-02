@@ -1,10 +1,9 @@
 import BlurCircle from "../components/BlurCircle";
 import MovieCard from "../components/MovieCard";
-import { useAppContext } from "../context/AppContext";
 import { destinations } from "../assets/dummy";
 
 const Movies = () => {
-  // eslint-disable-next-line no-unused-vars
+   
   // const { shows } = useAppContext();
 
   return destinations.length > 0 ? (
