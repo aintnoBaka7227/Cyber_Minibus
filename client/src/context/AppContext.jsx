@@ -92,7 +92,7 @@ export const AppProvider = ({ children }) => {
     fetchIsAdmin();
     fetchFavoriteMovies();
   }, []);
-
+}
   // Remove the user-dependent useEffect for now
   /* Commented out - uncomment when custom auth is ready
   useEffect(() => {
