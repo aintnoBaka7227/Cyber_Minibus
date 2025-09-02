@@ -1,17 +1,17 @@
 import { inngest } from "../inngest/index.js";
 import Booking from "../models/Booking.js";
-import Show from "../models/Show.js";
-import stripe from "stripe";
+import TripInstance from "../models/TripInstance.js";
+import Destination from "../models/Destination.js";
 
-// Function to check availability of selected seats for a movie
-const checkSeatsAvailability = async (showId, selectedSeats) => {
+// Function to check availability of selected seats for a trip
+const checkSeatsAvailability = async (tripInstanceId, selectedSeats) => {
   try {
-    const showData = await Show.findById(showId);
-    if (!showData) return false;
+    const tripInstance = await TripInstance.findById(tripInstanceId);
+    if (!tripInstance) return false;
 
-    const occupiedSeats = showData.occupiedSeats;
+    const bookedSeats = tripInstance.bookedSeats;
 
-    const isAnySeatTaken = selectedSeats.some((seat) => occupiedSeats[seat]);
+    const isAnySeatTaken = selectedSeats.some((seat) => bookedSeats.includes(seat));
 
     return !isAnySeatTaken;
   } catch (error) {
@@ -22,12 +22,12 @@ const checkSeatsAvailability = async (showId, selectedSeats) => {
 
 export const createBooking = async (req, res) => {
   try {
-    const { userId } = req.auth();
-    const { showId, selectedSeats } = req.body;
+    const userId = req.user._id;
+    const { tripInstanceId, selectedSeats } = req.body;
     const { origin } = req.headers;
 
-    // Check if the seat is available for the selected show
-    const isAvailable = await checkSeatsAvailability(showId, selectedSeats);
+    // Check if the seat is available for the selected trip
+    const isAvailable = await checkSeatsAvailability(tripInstanceId, selectedSeats);
 
     if (!isAvailable) {
       return res.json({
@@ -36,65 +36,47 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    // Get the show details
-    const showData = await Show.findById(showId).populate("movie");
+    // Get the trip instance details
+    const tripInstance = await TripInstance.findById(tripInstanceId);
+    if (!tripInstance) {
+      return res.json({
+        success: false,
+        message: "Trip instance not found.",
+      });
+    }
+
+    // Get destination details to calculate price
+    const destination = await Destination.findOne({
+      "tripTemplates._id": tripInstance.tripTemplateID
+    });
+    
+    const tripTemplate = destination.tripTemplates.find(
+      template => template._id.toString() === tripInstance.tripTemplateID.toString()
+    );
+
+    const totalAmount = tripTemplate.price * selectedSeats.length;
 
     // Create a new booking
     const booking = await Booking.create({
-      user: userId,
-      show: showId,
-      amount: showData.showPrice * selectedSeats.length,
-      bookedSeats: selectedSeats,
+      userID: userId,
+      tripInstanceID: tripInstanceId,
+      seats: selectedSeats,
+      amount: totalAmount,
+      status: "pending"
     });
 
-    selectedSeats.map((seat) => {
-      showData.occupiedSeats[seat] = userId;
-    });
+    // Update trip instance with booked seats
+    tripInstance.bookedSeats.push(...selectedSeats);
+    await tripInstance.save();
 
-    showData.markModified("occupiedSeats");
-
-    await showData.save();
-
-    // Stripe Gateway Initialize
-    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
-
-    // Creating line items for Stripe
-    const line_items = [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: showData.movie.title,
-          },
-          unit_amount: Math.floor(booking.amount) * 100,
-        },
-        quantity: 1,
-      },
-    ];
-
-    const session = await stripeInstance.checkout.sessions.create({
-      success_url: `${origin}/loading/my-bookings`,
-      cancel_url: `${origin}/my-bookings`,
-      line_items: line_items,
-      mode: "payment",
-      metadata: {
-        bookingId: booking._id.toString(),
-      },
-      expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // Expires in 30 minutes
-    });
-
-    booking.paymentLink = session.url;
+    // MOCK PAYMENT: immediately mark as paid and provide a fake URL
+    booking.status = "paid";
+    booking.paymentLink = `${origin}/payment/mock-success?bookingId=${booking._id.toString()}`;
     await booking.save();
 
-    // Run Inngest Scheduler Function to check payment status after 10 minutes
-    await inngest.send({
-      name: "app/checkpayment",
-      data: {
-        bookingId: booking._id.toString(),
-      },
-    });
+    // No delayed payment check needed in mock mode
 
-    res.json({ success: true, url: session.url });
+    res.json({ success: true, url: booking.paymentLink });
   } catch (error) {
     console.log(error.message);
     res.json({ success: false, message: error.message });
@@ -103,12 +85,14 @@ export const createBooking = async (req, res) => {
 
 export const getOccupiedSeats = async (req, res) => {
   try {
-    const { showId } = req.params;
-    const showData = await Show.findById(showId);
+    const { tripInstanceId } = req.params;
+    const tripInstance = await TripInstance.findById(tripInstanceId);
 
-    const occupiedSeats = Object.keys(showData.occupiedSeats);
+    if (!tripInstance) {
+      return res.json({ success: false, message: "Trip instance not found" });
+    }
 
-    res.json({ success: true, occupiedSeats });
+    res.json({ success: true, occupiedSeats: tripInstance.bookedSeats });
   } catch (error) {
     console.log(error.message);
     res.json({ success: false, message: error.message });

@@ -1,5 +1,6 @@
 import Booking from "../models/Booking.js";
-import Show from "../models/Show.js";
+import TripInstance from "../models/TripInstance.js";
+import Destination from "../models/Destination.js";
 import User from "../models/User.js";
 
 // API to check if user is an admin
@@ -10,18 +11,20 @@ export const isAdmin = async (req, res) => {
 // API to get dashboard data
 export const getDashboardData = async (req, res) => {
   try {
-    const bookings = await Booking.find({ isPaid: true });
-    const activeShows = await Show.find({
-      showDateTime: { $gte: new Date() },
-    }).populate("movie");
+    const bookings = await Booking.find({ status: "paid" });
+    const activeTrips = await TripInstance.find({
+      date: { $gte: new Date().toISOString().split('T')[0] }
+    });
 
-    const totalUser = await User.countDocuments();
+    const totalUsers = await User.countDocuments();
+    const totalDestinations = await Destination.countDocuments();
 
     const dashboardData = {
       totalBookings: bookings.length,
       totalRevenue: bookings.reduce((acc, booking) => acc + booking.amount, 0),
-      activeShows,
-      totalUser,
+      activeTrips: activeTrips.length,
+      totalUsers,
+      totalDestinations,
     };
 
     res.json({ success: true, dashboardData });
@@ -31,14 +34,13 @@ export const getDashboardData = async (req, res) => {
   }
 };
 
-// API to get all shows
-export const getAllShows = async (req, res) => {
+// API to get all trip instances
+export const getAllTripInstances = async (req, res) => {
   try {
-    const shows = await Show.find({ showDateTime: { $gte: new Date() } })
-      .populate("movie")
-      .sort({ showDateTime: 1 });
+    const tripInstances = await TripInstance.find({})
+      .sort({ date: 1, time: 1 });
 
-    res.json({ success: true, shows });
+    res.json({ success: true, tripInstances });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
@@ -49,11 +51,8 @@ export const getAllShows = async (req, res) => {
 export const getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({})
-      .populate("user")
-      .populate({
-        path: "show",
-        populate: { path: "movie" },
-      })
+      .populate("userID")
+      .populate("tripInstanceID")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, bookings });

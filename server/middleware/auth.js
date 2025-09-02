@@ -1,17 +1,4 @@
-import { clerkClient } from "@clerk/express";
+// This file is deprecated - use jwtAuth.js instead
+// Keeping for backward compatibility but redirecting to new middleware
 
-export const protectAdmin = async (req, res, next) => {
-  try {
-    const { userId } = req.auth();
-
-    const user = await clerkClient.users.getUser(userId);
-
-    if (user.privateMetadata.role !== "admin") {
-      return res.json({ success: false, message: "not authorized" });
-    }
-
-    next();
-  } catch (error) {
-    return res.json({ success: false, message: "not authorized" });
-  }
-};
+export { protectAdmin, authenticateToken } from "./jwtAuth.js";

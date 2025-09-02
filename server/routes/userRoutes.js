@@ -1,14 +1,14 @@
 import express from "express";
 import {
-  getFavorites,
   getUserBookings,
-  updateFavorite,
 } from "../controllers/userController.js";
+import { authenticateToken } from "../middleware/jwtAuth.js";
 
 const userRouter = express.Router();
 
+// All user routes require authentication
+userRouter.use(authenticateToken);
+
 userRouter.get("/bookings", getUserBookings);
-userRouter.post("/update-favorite", updateFavorite);
-userRouter.get("/favorites", getFavorites);
 
 export default userRouter;

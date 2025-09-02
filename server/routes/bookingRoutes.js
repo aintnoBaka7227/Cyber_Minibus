@@ -3,10 +3,13 @@ import {
   createBooking,
   getOccupiedSeats,
 } from "../controllers/bookingController.js";
+import { authenticateToken } from "../middleware/jwtAuth.js";
 
 const bookingRouter = express.Router();
 
-bookingRouter.post("/create", createBooking);
-bookingRouter.get("/seats/:showId", getOccupiedSeats);
+// Create booking requires authentication
+bookingRouter.post("/create", authenticateToken, createBooking);
+// Getting seats doesn't require authentication
+bookingRouter.get("/seats/:tripInstanceId", getOccupiedSeats);
 
 export default bookingRouter;
