@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { MenuIcon, TicketPlus, XIcon } from "lucide-react";
-import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
+// import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
 import { useAppContext } from "../context/AppContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useUser();
-  const { openSignIn } = useClerk();
+  // const { user } = useUser();
+  // const { openSignIn } = useClerk();
 
   const navigate = useNavigate();
 

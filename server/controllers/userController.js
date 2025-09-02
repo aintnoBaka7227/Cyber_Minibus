@@ -1,4 +1,4 @@
-import { clerkClient } from "@clerk/express";
+// import { clerkClient } from "@clerk/express";
 import Booking from "../models/Booking.js";
 import Movie from "../models/Movie.js";
 
@@ -27,7 +27,7 @@ export const updateFavorite = async (req, res) => {
     const { movieId } = req.body;
     const userId = req.auth().userId;
 
-    const user = await clerkClient.users.getUser(userId);
+  // const user = await clerkClient.users.getUser(userId);
 
     if (!user.privateMetadata.favorites) {
       user.privateMetadata.favorites = [];
@@ -41,9 +41,9 @@ export const updateFavorite = async (req, res) => {
       );
     }
 
-    await clerkClient.users.updateUserMetadata(userId, {
-      privateMetadata: user.privateMetadata,
-    });
+  // await clerkClient.users.updateUserMetadata(userId, {
+  //   privateMetadata: user.privateMetadata,
+  // });
 
     res.json({ success: true, message: "Favorite movies updated" });
   } catch (error) {
@@ -55,8 +55,8 @@ export const updateFavorite = async (req, res) => {
 // API Controller Function to Get Favorite Movies from Clerk User Metadata
 export const getFavorites = async (req, res) => {
   try {
-    const user = await clerkClient.users.getUser(req.auth().userId);
-    const favorites = user.privateMetadata.favorites;
+  // const user = await clerkClient.users.getUser(req.auth().userId);
+  // const favorites = user.privateMetadata.favorites;
 
     // Getting movies from database
     const movies = await Movie.find({ _id: { $in: favorites } });

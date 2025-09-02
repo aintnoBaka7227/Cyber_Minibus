@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { useAuth, useUser } from "@clerk/clerk-react";
+//import { useAuth, useUser } from "@clerk/clerk-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -13,12 +13,13 @@ export const AppProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(true); // Set to true for admin access without auth
   const [shows, setShows] = useState([]);
   const [favoriteMovies, setFavoriteMovies] = useState([]);
+  const [user, setUser] = useState(null);
 
   const image_base_url = import.meta.env.VITE_TMDB_IMAGE_BASE_URL;
 
   // Use Clerk hooks but provide fallbacks
-  const { user } = useUser() || {};
-  const { getToken } = useAuth() || {};
+  //const { user } = useUser() || {};
+  //const { getToken } = useAuth() || {};
   // eslint-disable-next-line no-unused-vars
   const location = useLocation();
   const navigate = useNavigate();
@@ -93,7 +94,7 @@ export const AppProvider = ({ children }) => {
     fetchIsAdmin();
     fetchFavoriteMovies();
   }, []);
-}
+
   // Remove the user-dependent useEffect for now
   /* Commented out - uncomment when custom auth is ready
   useEffect(() => {
@@ -107,8 +108,6 @@ export const AppProvider = ({ children }) => {
   const value = {
     axios,
     fetchIsAdmin,
-    user: user || fallbackUser, // Use fallback user if no Clerk user
-    getToken: getToken || (() => Promise.resolve(null)), // Provide fallback getToken
     navigate,
     isAdmin,
     shows,
@@ -118,7 +117,7 @@ export const AppProvider = ({ children }) => {
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-};
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAppContext = () => useContext(AppContext);
