@@ -4,8 +4,13 @@ import {
   RouteIcon,
   UsersIcon,
 } from "lucide-react";
+import { useState } from "react";
+import { destinations } from "../../assets/dummy";
+import MovieCard from "../../components/MovieCard";
 
 const Dashboard = () => {
+  const [showAll, setShowAll] = useState(false);
+  
   // Placeholder data - will be replaced with real data when authentication is implemented
   const dashboardCards = [
     {
@@ -30,6 +35,9 @@ const Dashboard = () => {
     },
   ];
 
+  // Show only first 4 destinations unless "Show More" is clicked
+  const displayedDestinations = showAll ? destinations : destinations.slice(0, 4);
+
   return (
     <div className="p-6">
       {/* Dashboard Title */}
@@ -41,7 +49,7 @@ const Dashboard = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         {dashboardCards.map((card, index) => (
           <div
             key={index}
@@ -62,14 +70,26 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Future sections can be added here */}
-      <div className="mt-12">
-        <h2 className="text-xl font-semibold text-white mb-4">Recent Activity</h2>
-        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6">
-          <p className="text-white/70 text-center py-8">
-            Recent activity data will be displayed here when connected to the database.
-          </p>
+      {/* Active Trips Section */}
+      <div className="mb-12">
+        <h2 className="text-2xl font-bold text-white mb-6">Active Trips</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {displayedDestinations.map((destination) => (
+            <MovieCard destination={destination} key={destination._id} />
+          ))}
         </div>
+        
+        {/* Show More Button */}
+        {destinations.length > 4 && (
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="px-6 py-3 bg-[#ABD5EA] text-black font-medium rounded-lg hover:bg-[#ABD5EA]/90 transition-colors"
+            >
+              {showAll ? "Show Less" : `Show More (${destinations.length - 4} more)`}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

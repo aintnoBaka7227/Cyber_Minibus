@@ -2,13 +2,11 @@ import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BlurCircle from "./BlurCircle";
 import MovieCard from "./MovieCard";
-import { useAppContext } from "../context/AppContext";
-import { dummyShowsData } from "../assets/assets";
 import { destinations } from "../assets/dummy";
 
 const FeaturedSection = () => {
   const navigate = useNavigate();
-  // eslint-disable-next-line no-unused-vars
+   
   //const { shows } = useAppContext();
 
   return (
