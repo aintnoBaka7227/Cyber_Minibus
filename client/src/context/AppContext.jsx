@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -11,7 +11,9 @@ export const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false); // Set to true for admin access without auth
   const [user, setUser] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [destinations, setDestinations] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [tripInstances, setTripInstances] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -19,11 +21,12 @@ export const AppProvider = ({ children }) => {
   const image_base_url = import.meta.env.VITE_TMDB_IMAGE_BASE_URL;
   const MOCK_AUTH = import.meta.env.VITE_ENABLE_MOCK_AUTH === "true";
 
-  // eslint-disable-next-line no-unused-vars
+   
   const location = useLocation();
   const navigate = useNavigate(); 
 
   // simple auth with login
+  // eslint-disable-next-line no-unused-vars
   const login = async (email, _password) => {
     if (!MOCK_AUTH) {
       toast.error("Mock auth disabled. No server connected.");
@@ -35,12 +38,12 @@ export const AppProvider = ({ children }) => {
       firstName: "Dev",
       lastName: "User",
       email: email || "dev@example.com",
-      role: "admin", // change to "client" if you prefer
+      role: "client", // change to "client" if you prefer
       image: "/src/assets/profile.png",
     };
     setUser(mockUser);
     setIsAuthenticated(true);
-    setIsAdmin(mockUser.role === "admin");
+    setIsAdmin(mockUser.role === "client");
     localStorage.setItem("mock_user", JSON.stringify(mockUser));
     toast.success("Logged in (mock)");
     return true;
@@ -58,6 +61,7 @@ export const AppProvider = ({ children }) => {
     // Ensure we leave any protected/admin routes
     try {
       navigate("/");
+    // eslint-disable-next-line no-unused-vars, no-empty
     } catch (_e) {}
   };
 
@@ -78,7 +82,7 @@ export const AppProvider = ({ children }) => {
     };
     setUser(mockUser);
     setIsAuthenticated(true);
-    setIsAdmin(mockUser.role === "admin");
+    setIsAdmin(mockUser.role === "client");
     localStorage.setItem("mock_user", JSON.stringify(mockUser));
     toast.success("Registered (mock)");
     return true;
@@ -95,10 +99,11 @@ export const AppProvider = ({ children }) => {
       try {
         const raw = localStorage.getItem("mock_user");
         if (raw) {
-          admin = JSON.parse(raw)?.role === "admin";
+          admin = JSON.parse(raw)?.role === "client";
         } else if (user) {
-          admin = user?.role === "admin";
+          admin = user?.role === "client";
         }
+      // eslint-disable-next-line no-unused-vars
       } catch (_e) {
         admin = false;
       }
@@ -121,7 +126,7 @@ export const AppProvider = ({ children }) => {
       return admin;
     } catch (error) {
       console.error(error);
-      const admin = user?.role === "admin";
+      const admin = user?.role === "client";
       setIsAdmin(Boolean(admin));
       if (!admin && location.pathname.startsWith("/admin")) {
         navigate("/");
