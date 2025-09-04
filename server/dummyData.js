@@ -98,7 +98,7 @@ export const bookings = [
     userID: "650000000000000000000002", // alice
     tripInstanceID: "650000000000000000040003", // Port Elliot 12:30
     seats: ["D1"],
-    status: "Cancelled",
+    status: "cancelled",
     createdAt: new Date("2025-08-28T09:30:00Z")
   }
 ];
