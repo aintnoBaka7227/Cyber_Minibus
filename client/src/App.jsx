@@ -5,6 +5,7 @@ import Movies from "./pages/Movies";
 import MovieDetails from "./pages/MovieDetails";
 import SeatLayout from "./pages/SeatLayout";
 import MyBookings from "./pages/MyBookings";
+import UserProfile from "./pages/UserProfile";
 import Favorite from "./pages/Favorite";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -33,6 +34,7 @@ const App = () => {
         <Route path="/routes/:id/:date" element={<SeatLayout />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/my-profile" element={<UserProfile />} />
         <Route path="/loading/:nextUrl" element={<Loading />} />
         <Route path="/favorite" element={<Favorite />} />
         <Route path="/login" element={<Login />} />

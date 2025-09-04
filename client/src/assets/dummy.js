@@ -73,33 +73,41 @@ export const bookings = [
     _id: "650000000000000000050001",
     userID: "650000000000000000000001", // alice
     tripInstanceID: "650000000000000000040001", // Hahndorf 09:00
-    seats: ["A1","A2"],
-    status: "paid",
-    createdAt: new Date("2025-08-27T12:00:00Z")
+    seats: ["B12", "B13"],
+    status: "confirmed",
+    amount: 50,
+    isPaid: true,
+    createdAt: new Date("2025-10-13T17:00:00Z"),
+    destination: {
+      name: "Hahndorf",
+      image: "/hahndorf-german-town-02-1024x681.png",
+      duration: "25 minutes"
+    },
+    tripDate: "13th Oct 2025",
+    tripTime: "5:00 PM",
+    totalTickets: 2,
+    bookingStatus: "Cancel", // Future trip - can cancel
+    canCancel: true
   },
   {
     _id: "650000000000000000050002",
-    userID: "650000000000000000000002", // bob
-    tripInstanceID: "650000000000000000040002", // Hahndorf 10:00
-    seats: ["B1"],
-    status: "paid",
-    createdAt: new Date("2025-08-28T10:00:00Z")
-  },
-  {
-    _id: "650000000000000000050003",
     userID: "650000000000000000000001", // alice
     tripInstanceID: "650000000000000000040003", // Port Elliot 12:30
-    seats: ["A1"],
-    status: "paid",
-    createdAt: new Date("2025-08-28T09:30:00Z")
-  },
-  {
-    _id: "650000000000000000050004",
-    userID: "650000000000000000000002", // alice
-    tripInstanceID: "650000000000000000040003", // Port Elliot 12:30
-    seats: ["D1"],
-    status: "Cancelled",
-    createdAt: new Date("2025-08-28T09:30:00Z")
+    seats: ["B12", "B13"],
+    status: "completed",
+    amount: 250,
+    isPaid: true,
+    createdAt: new Date("2025-06-11T17:00:00Z"),
+    destination: {
+      name: "Port Elliot",
+      image: "/portelliot.jpeg",
+      duration: "5 hours"
+    },
+    tripDate: "11th Jun 2025",
+    tripTime: "5:00 PM",
+    totalTickets: 2,
+    bookingStatus: "Successful", // Past trip - completed
+    canCancel: false
   }
 ];
 
