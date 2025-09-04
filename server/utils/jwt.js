@@ -11,6 +11,6 @@ export const signToken = (user) => {
             username: user.user_name
         },
         secret,
-        {algorithm: "HS256"}
+        {expiresIn: "20m", algorithm: "HS256"}
     );
 };
