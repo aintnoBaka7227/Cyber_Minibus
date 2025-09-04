@@ -1,12 +1,11 @@
 import Navbar from "./components/Navbar";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
-import Movies from "./pages/Movies";
-import MovieDetails from "./pages/MovieDetails";
+import Destinations from "./pages/Destinations";
+import DestinationDetails from "./pages/DestinationDetails";
 import SeatLayout from "./pages/SeatLayout";
 import MyBookings from "./pages/MyBookings";
 import UserProfile from "./pages/UserProfile";
-import Favorite from "./pages/Favorite";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AboutUs from "./pages/AboutUs";
@@ -29,14 +28,13 @@ const App = () => {
       {!isAdminRoute && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/routes" element={<Movies />} />
-        <Route path="/routes/:id" element={<MovieDetails />} />
+        <Route path="/routes" element={<Destinations />} />
+        <Route path="/routes/:id" element={<DestinationDetails />} />
         <Route path="/routes/:id/:date" element={<SeatLayout />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/my-profile" element={<UserProfile />} />
         <Route path="/loading/:nextUrl" element={<Loading />} />
-        <Route path="/favorite" element={<Favorite />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 

@@ -23,7 +23,6 @@ const MyBookings = () => {
       if (data.success) {
         setBookings(data.bookings);
       }
-      */
     } catch (error) {
       console.log(error);
       setIsLoading(false);
