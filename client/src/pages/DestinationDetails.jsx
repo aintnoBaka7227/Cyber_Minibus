@@ -3,11 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import BlurCircle from "../components/BlurCircle";
 import { StarIcon, MapPin, ChevronDown } from "lucide-react";
 import DateSelect from "../components/DateSelect";
-import MovieCard from "../components/DestinationCard";
+import DestinationCard from "../components/DestinationCard";
 import { useAppContext } from "../context/AppContext";
 import { destinations } from "../assets/dummy";
 
-const MovieDetails = () => {
+const DestinationDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [destination, setDestination] = useState(null);
@@ -60,25 +60,6 @@ const MovieDetails = () => {
       document.removeEventListener('click', handleClickOutside);
     };
   }, [isDropdownOpen]);
-
-  // const handleFavorite = async () => {
-  //   try {
-  //     if (!user) return toast.error("Please login to proceed");
-
-  //     const { data } = await axios.post(
-  //       "/api/user/update-favorite",
-  //       { movieId: id },
-  //       { headers: { Authorization: `Bearer ${await getToken()}` } }
-  //     );
-
-  //     if (data.success) {
-  //       await fetchFavoriteMovies();
-  //       toast.success(data.message);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
 
   return destination ? (
     <div className="px-6 md:px-16 lg:px-40 pt-30 md:pt-50">
@@ -165,7 +146,7 @@ const MovieDetails = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
         {destinations.filter(dest => dest._id !== id).slice(0, 4).map((dest, index) => (
-          <MovieCard key={index} destination={dest} />
+          <DestinationCard key={index} destination={dest} />
         ))}
       </div>
 
@@ -188,4 +169,4 @@ const MovieDetails = () => {
 
 // TODO: Continue with the rest of the Movie Details, for example Date and Time selection
 
-export default MovieDetails;
+export default DestinationDetails;

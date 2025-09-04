@@ -1,8 +1,8 @@
 import BlurCircle from "../components/BlurCircle";
-import MovieCard from "../components/DestinationCard";
+import DestinationCard from "../components/DestinationCard";
 import { destinations } from "../assets/dummy";
 
-const Movies = () => {
+const Destinations = () => {
    
   // const { shows } = useAppContext();
 
@@ -13,7 +13,7 @@ const Movies = () => {
       <h1 className="text-lg font-medium my-4">Current Journeys</h1>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
         {destinations.map((destination) => (
-          <MovieCard destination={destination} key={destination._id} />
+          <DestinationCard destination={destination} key={destination._id} />
         ))}
       </div>
     </div>
@@ -24,4 +24,4 @@ const Movies = () => {
   );
 };
 
-export default Movies;
+export default Destinations;
