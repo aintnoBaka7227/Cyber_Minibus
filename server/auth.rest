@@ -1,3 +1,4 @@
+### 
 POST http://localhost:3000/api/auth/login
 Content-Type: application/json
 
@@ -5,3 +6,13 @@ Content-Type: application/json
     "email": "admin@example.com",
     "password": "admin123"
 }
+
+###
+
+POST http://localhost:3000/api/auth/me
+Content-Type: application/json
+Cookie: accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NTAwMDAwMDAwMDAwMDAwMDAwMDAwMDMiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTY5NzA5NDd9.uNmZxgLBXipiQDoz4vIpEhMNl9jnZYgH5W87WhaSHE8
+
+
+POST http://localhost:3000/api/auth/logout
+Content-Type: application/json

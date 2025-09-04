@@ -8,7 +8,7 @@ const cookieOpts = {
   path:"/"
 };
 
-export const register = async (req, res, next) => {
+export const register = async (req, res) => {
   try {
     const { username, email, password, role = "client" } = req.body;
     if (!username || !email || !password) {
@@ -20,8 +20,10 @@ export const register = async (req, res, next) => {
 
     const new_user = await User.create({ username, email, password, role });
 
+    const token = signToken(new_user)
+
     res
-      .cookie("accessToken", cookieOpts)
+      .cookie("accessToken", token, cookieOpts)
       .status(201)
       .json({
         user: { id: new_user._id, username: new_user.username, email: new_user.email, role: new_user.role },
@@ -47,7 +49,6 @@ export const login = async (req, res) => {
       .cookie("accessToken", token, cookieOpts)
       .json({
         user: { id: user._id, username: user.username, email: user.email, role: user.role },
-        accessToken: token,
       });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -65,7 +66,7 @@ export const me = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-  res.clearCookie("accessToken", { path: "/" });
+  res.clearCookie("accessToken", cookieOpts);
   res.json({ message: "Logged out" });
 };
 
