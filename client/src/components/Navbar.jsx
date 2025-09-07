@@ -1,46 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { MenuIcon, TicketPlus, XIcon, User, LogOut, ChevronDown } from "lucide-react";
-// import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
+import { MenuIcon, TicketPlus, XIcon, LogOut, User } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  
-  // Temporary mock user - replace with real auth later
-  const user = { name: "Alice Smith", avatar: null }; // Set to null to simulate no user logged in
-  
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
 
-  const { favoriteMovies } = useAppContext();
-
-  const handleLogin = () => {
-    // Temporary function - replace with real login later
-    console.log("Login clicked");
-  };
-
-  const handleLogout = () => {
-    // Temporary function - replace with real logout later
-    console.log("Logout clicked");
-    setIsUserDropdownOpen(false);
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsUserDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  const { user, isAuthenticated, logout } = useAppContext();
 
   return (
     <div className="fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-16 lg:px-36 py-5">
@@ -85,77 +54,60 @@ const Navbar = () => {
         >
           About Us
         </Link>
-        {favoriteMovies.length > 0 && (
-          <Link
-            onClick={() => {
-              scrollTo(0, 0);
-              setIsOpen(false);
-            }}
-            to="/favorite"
-          >
-            Favorites
-          </Link>
-        )}
       </div>
 
       <div className="flex items-center gap-8">
-        {!user ? (
-          <button
-            onClick={handleLogin}
-            className="px-4 py-1 sm:px-7 sm:py-2 bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer text-black"
-          >
-            Login
-          </button>
-        ) : (
-          <div className="relative" ref={dropdownRef}>
+        {!isAuthenticated ? (
+          <div className="flex gap-4">
             <button
-              onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-gray-300/20 rounded-full transition-colors"
+              onClick={() => navigate("/login")}
+              className="px-4 py-1 sm:px-7 sm:py-2 bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer text-black"
             >
-              <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white text-sm">
-                {user.avatar ? (
-                  <img src={user.avatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <User className="w-4 h-4" />
-                )}
-              </div>
-              <span className="text-white text-sm hidden sm:block">{user.name}</span>
-              <ChevronDown className="w-4 h-4 text-white" />
+              Login
             </button>
-
-            {/* Dropdown Menu */}
-            {isUserDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50">
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      navigate("/my-profile");
-                      setIsUserDropdownOpen(false);
-                    }}
-                    className="flex items-center gap-3 w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 transition-colors"
-                  >
-                    <User className="w-4 h-4" />
-                    My Profile
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate("/my-bookings");
-                      setIsUserDropdownOpen(false);
-                    }}
-                    className="flex items-center gap-3 w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 transition-colors"
-                  >
-                    <TicketPlus className="w-4 h-4" />
-                    My Bookings
-                  </button>
-                  <hr className="border-gray-700 my-1" />
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 w-full px-4 py-2 text-left text-red-400 hover:bg-gray-700 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Log Out
-                  </button>
-                </div>
+            <button
+              onClick={() => navigate("/register")}
+              className="px-4 py-1 sm:px-7 sm:py-2 border border-primary text-primary hover:bg-primary hover:text-black transition rounded-full font-medium cursor-pointer"
+            >
+              Register
+            </button>
+          </div>
+        ) : (
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-gray-300/20 hover:bg-white/20 transition"
+            >
+              <img 
+                src={user?.image || "/src/assets/profile.png"} 
+                alt="Profile" 
+                className="w-8 h-8 rounded-full"
+              />
+              <span className="text-white">{user?.name || "User"}</span>
+            </button>
+            
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-primary rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <button
+                  onClick={() => {
+                    navigate("/my-bookings");
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 text-black flex items-center gap-2"
+                >
+                  <TicketPlus width={15} />
+                  My Bookings
+                </button>
+                <button
+                  onClick={() => {
+                    logout();
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 text-black flex items-center gap-2"
+                >
+                  <LogOut width={15} />
+                  Logout
+                </button>
               </div>
             )}
           </div>
