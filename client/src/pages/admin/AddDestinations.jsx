@@ -23,7 +23,7 @@ const addDestinations = () => {
         setNowPlayingMovies([]);
         return;
       }
-      const { data } = await axios.get("/api/show/now-playing", {
+      const { data } = await axios.get("/api/show/on-going-trip", {
         headers: { Authorization: `Bearer ${await getToken()}` },
       });
 

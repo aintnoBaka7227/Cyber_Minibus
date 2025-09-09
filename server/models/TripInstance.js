@@ -1,10 +1,25 @@
 import mongoose from "mongoose";
 
 const tripInstanceSchema = new mongoose.Schema({
-  tripTemplateID: { type: mongoose.Schema.Types.ObjectId, ref: "Destination.tripTemplates", required: true },
-  date: { type: Date, required: true },
-  time: { type: String, required: true },
-  bookedSeats: [String]
+  tripTemplateID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "TripTemplate",
+    required: true,
+  },
+  date: {
+    type: Date,
+    required: true,
+  },
+  time: {
+    type: String,
+    required: true,
+  },
+  bookedSeats:
+    {
+      type: [String],
+    }
 });
 
-export default mongoose.model("TripInstance", tripInstanceSchema);
+const Trip = mongoose.model("Trip", tripInstanceSchema);
+
+export default Trip;

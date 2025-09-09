@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import { destinations, tripInstances, bookings, users } from "./dummyData.js"; 
 import Destination from "./models/Destination.js";
 import TripInstance from "./models/TripInstance.js";
-import Booking from "./models/Booking.js";
+import TripBooking from "./models/TripBooking.js";
 import User from "./models/User.js";
 import connectDB from "./configs/db.js";  // 👈 use your db.js
 
@@ -20,7 +20,7 @@ const seedDatabase = async () => {
     await Promise.all([
       Destination.deleteMany(),
       TripInstance.deleteMany(),
-      Booking.deleteMany(),
+      TripBooking.deleteMany(),
       User.deleteMany(),
     ]);
     console.log("🧹 Old data cleared");
@@ -29,7 +29,7 @@ const seedDatabase = async () => {
     await User.insertMany(users);
     await Destination.insertMany(destinations);
     await TripInstance.insertMany(tripInstances);
-    await Booking.insertMany(bookings);
+    await TripBooking.insertMany(bookings);
 
     console.log("🎉 Dummy data inserted!");
     process.exit(0);

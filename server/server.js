@@ -2,7 +2,9 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import connectDB from "./configs/db.js";
-import { authRouter } from "./routes/authRoutes.js";
+import authRouter from "./routes/authRoutes.js";
+import userRouter from "./routes/userRoutes.js";
+import tripRouter from "./routes/tripRoutes.js";
 import cookieParser from "cookie-parser";
 // import { userRouter } from "./routes/userRoutes.js"
 
@@ -26,7 +28,8 @@ app.get("/", (req, res) => {
 
 app.use(cookieParser());
 app.use("/api/auth", authRouter);
-// app.use("api/user", userRouter);
+app.use("/api/user", userRouter);
+app.use("/api/trip", tripRouter);
 
 app.listen(port, () =>
   console.log(`Server listening at http://localhost:${port}`)

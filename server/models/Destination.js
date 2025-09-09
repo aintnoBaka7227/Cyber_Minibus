@@ -13,7 +13,7 @@ const tripTemplateSchema = new mongoose.Schema({
 });
 
 const destinationSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  title: { type: String, required: true },
   teaser: { type: String },
   description: { type: String },
   rating: { type: Number, default: 0 },

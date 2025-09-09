@@ -1,5 +1,7 @@
 import User from "../models/User.js";
 import { signToken } from "../utils/jwt.js";
+import { MongoClient } from "mongodb";
+const USE_VULNERABLE_LOGIN = true;
 
 const cookieOpts = {
   httpOnly: false,
@@ -34,24 +36,59 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  try {
+  if (USE_VULNERABLE_LOGIN) {
+    // Vulnerable Version
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: "email or username, and password are required" });
-    }
-    const user = await User.findOne(email ? { email } : { username });
-    console.log(user);
-    if (!user || ! (req.body.password == user.password)) return res.status(401).json({ success: false, message: "Invalid credentials" });
+    const query = { email: email, password: password };
 
-    const token = signToken(user);
-
-    res
-      .cookie("accessToken", token, cookieOpts)
-      .json({
-        user: { id: user._id, username: user.username, email: user.email, role: user.role },
+    try {
+      const client = await MongoClient.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
       });
-  } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+      const db = client.db();
+      const user = await db.collection("users").findOne(query);
+
+      if (user) {
+        return res.status(200).send("Login successful! (⚠️ vulnerable mode)");
+      } else {
+        return res.status(401).send("Invalid credentials.");
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Server error.");
+    }
+  } else {
+    // Secure Version
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "email or username, and password are required",
+        });
+      }
+
+      const user = await User.findOne(email ? { email } : { username: req.body.username });
+      if (!user || !(req.body.password === user.password)) {
+        return res
+          .status(401)
+          .json({ success: false, message: "Invalid credentials" });
+      }
+
+      const token = signToken(user);
+
+      return res.cookie("accessToken", token, cookieOpts).json({
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
   }
 };
 
