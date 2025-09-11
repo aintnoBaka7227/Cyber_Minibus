@@ -13,12 +13,19 @@ const Register = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const ok = await register({ email, username, password });
+    // const ok = await register({ email, username, password });
+    const user = await register({ email, username, password });
     setLoading(false);
-    if (ok) {
-      const role = (user?.role) || (JSON.parse(localStorage.getItem("mock_user") || "{}")?.role);
-      if (role === "admin") navigate("/admin");
-      else navigate("/");
+    // if (ok) {
+    //   const role = (user?.role) || (JSON.parse(localStorage.getItem("mock_user") || "{}")?.role);
+    //   if (role === "admin") navigate("/admin");
+    //   else navigate("/");
+    // }
+    if (user.role == "admin") {
+      navigate("/admin");
+    } 
+    else {
+      navigate("/");
     }
   };
 

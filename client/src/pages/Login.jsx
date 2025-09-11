@@ -12,11 +12,17 @@ const Login = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const ok = await login(email, password);
+    const user = await login(email, password);
     setLoading(false);
-    if (ok) {
-      const role = (user?.role) || (JSON.parse(localStorage.getItem("mock_user") || "{}")?.role);
-      if (role === "admin") navigate("/admin");
+    // if (user){
+    //   const role = (user?.role) || (JSON.parse(localStorage.getItem("mock_user") || "{}")?.role);
+    //   if (role === "admin") navigate("/admin");
+    //   else navigate("/");
+    // }
+    if (user) {
+      if (user.role == "admin") {
+        navigate("/admin");
+      }
       else navigate("/");
     }
   };

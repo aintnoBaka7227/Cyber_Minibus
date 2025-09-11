@@ -4,7 +4,7 @@ import { signToken } from "../utils/jwt.js";
 const cookieOpts = {
   httpOnly: false,
   secure: false,
-  sameSite: "none",
+  sameSite: "None",
   path:"/"
 };
 
