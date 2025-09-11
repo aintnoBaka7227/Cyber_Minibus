@@ -1,7 +1,9 @@
-// import express from "express";
-// import { getUserBookings } from "../controllers/userController.js";
+import express from "express";
+import { getUserBookings, getUserProfile, updateUserProfile } from "../controllers/userController.js";
+import { requireAuth } from "../middleware/auth.js";
 
-// export const userRouter = express.Router();
+export const userRouter = express.Router();
 
-// userRouter.get("/bookings", getUserBookings);
-// userRouter.get("/profile", getUserProfile);
+userRouter.get("/bookings", requireAuth, getUserBookings);
+userRouter.get("/profile", requireAuth, getUserProfile);
+userRouter.post("/update-profile", requireAuth, updateUserProfile);

@@ -8,9 +8,9 @@ export const signToken = (user) => {
         {
             sub: user._id.toString(),
             role: user.role,
-            username: user.username
+            //username: user.username
         },
         secret,
-        {expiresIn: "10m", algorithm: "HS256"}
+        {expiresIn: "15m", algorithm: "HS256"}
     );
 };
