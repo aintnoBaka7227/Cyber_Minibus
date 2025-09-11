@@ -4,13 +4,13 @@ import { signToken } from "../utils/jwt.js";
 const cookieOpts = {
   httpOnly: false,
   secure: false,
-  sameSite: "none",
+  sameSite: "Lax",
   path:"/"
 };
 
 export const register = async (req, res) => {
   try {
-    const { username, email, password, role = "client" } = req.body;
+    const { email, username, password, role} = req.body;
     if (!username || !email || !password) {
       return res.status(400).json({ success: false, message: "username, email and password are required" });
     }

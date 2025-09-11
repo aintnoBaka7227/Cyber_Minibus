@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 
 const Login = () => {
-  const { login, user } = useAppContext();
+  const { login } = useAppContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -12,13 +12,11 @@ const Login = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const ok = await login(email, password);
+    const user = await login(email, password);
     setLoading(false);
-    if (ok) {
-      const role = (user?.role) || (JSON.parse(localStorage.getItem("mock_user") || "{}")?.role);
-      if (role === "admin") navigate("/admin");
-      else navigate("/");
-    }
+    if (user && user.role == "admin") {
+      navigate("/admin");  
+    } else navigate("/");
   };
 
   return (

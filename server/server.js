@@ -8,23 +8,22 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 const port = 3000;
-
 await connectDB();
 
 // Middleware
 app.use(express.json());
 app.use(cors({
   origin: "http://localhost:5173",
-  credential: true
+  credentials: true,
 }));
 
 // API Routes
 app.get("/", (req, res) => {
-    console.log("hehe");
     res.send("server running ....");
 });
 
 app.use(cookieParser());
+
 app.use("/api/auth", authRouter);
 // app.use("api/user", userRouter);
 
