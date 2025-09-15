@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BlurCircle from "./BlurCircle";
-import MovieCard from "./MovieCard";
+import DestinationCard from "./DestinationCard";
 import { destinations } from "../assets/dummy";
 
 const FeaturedSection = () => {
@@ -29,7 +29,7 @@ const FeaturedSection = () => {
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8 justify-items-center'>
         {destinations.map((destination) => {
           console.log('FeaturedSection destination:', destination);
-          return <MovieCard key={destination._id} destination={destination} />;
+          return <DestinationCard key={destination._id} destination={destination} />;
         })}
       </div>
 

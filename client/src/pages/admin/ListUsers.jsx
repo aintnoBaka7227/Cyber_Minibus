@@ -10,6 +10,16 @@ const ListUsers = () => {
   useEffect(() => {
     const getAllUsers = async () => {
       try {
+        if (import.meta.env.VITE_ENABLE_MOCK_AUTH === "true") {
+          // Provide placeholder users in mock mode
+          setUsers([
+            { name: "Dev Admin", email: "devadmin@example.com", phone: "+1 555-0001" },
+            { name: "Alice Johnson", email: "alice@example.com", phone: "+1 555-0002" },
+            { name: "Bob Lee", email: "bob@example.com", phone: "+1 555-0003" },
+          ]);
+          setLoading(false);
+          return;
+        }
         const { data } = await axios.get("/api/admin/all-users", {
           headers: { Authorization: `Bearer ${await getToken()}` },
         });

@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import { MenuIcon, XIcon, ChevronDownIcon, UserIcon, LogOutIcon } from "lucide-react";
+import { useAppContext } from "../../context/AppContext";
 
 const AdminNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { logout, navigate } = useAppContext();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -33,9 +35,9 @@ const AdminNavbar = () => {
   };
 
   const handleLogout = () => {
-    // TODO: Implement logout functionality
-    console.log("Logout clicked");
+    logout();
     setIsUserDropdownOpen(false);
+    try { navigate("/"); } catch (_e) {}
   };
 
   return (

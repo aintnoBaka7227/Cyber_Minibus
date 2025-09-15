@@ -11,13 +11,11 @@ const MyBookings = () => {
 
   const getMyBookings = async () => {
     try {
-      // Using mock data for development - replace with real API call later
-      setBookings(mockBookings);
-      setIsLoading(false);
-      
-      // Real API call (commented out for now)
-      /*
-      const { axios, getToken } = useAppContext();
+      if (import.meta.env.VITE_ENABLE_MOCK_AUTH === "true") {
+        setBookings([]);
+        setIsLoading(false);
+        return;
+      }
       const { data } = await axios.get("/api/user/bookings", {
         headers: { Authorization: `Bearer ${await getToken()}` },
       });
@@ -25,7 +23,6 @@ const MyBookings = () => {
       if (data.success) {
         setBookings(data.bookings);
       }
-      */
     } catch (error) {
       console.log(error);
       setIsLoading(false);

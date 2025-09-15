@@ -4,17 +4,22 @@ import Title from "../../components/admin/Title";
 import { dateFormat } from "../../lib/dateFormat";
 import { useAppContext } from "../../context/AppContext";
 
-const ListShows = () => {
+const ListDestinations = () => {
   const { axios, getToken } = useAppContext();
 
   const currency = import.meta.env.VITE_CURRENCY;
 
-  const [shows, setShows] = useState([]);
+  const [destinations, setdestinations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getAllShow = async () => {
+    const getAllDestination = async () => {
       try {
+        if (import.meta.env.VITE_ENABLE_MOCK_AUTH === "true") {
+          setdestinations([]);
+          setLoading(false);
+          return;
+        }
         const { data } = await axios.get("/api/admin/all-shows", {
           headers: { Authorization: `Bearer ${await getToken()}` },
         });
@@ -27,7 +32,7 @@ const ListShows = () => {
     };
 
     // Always call getAllShow, regardless of user state for admin panel
-    getAllShow();
+    getAllDestination();
   }, [axios, getToken]);
 
   return !loading ? (
@@ -76,4 +81,4 @@ const ListShows = () => {
   );
 };
 
-export default ListShows;
+export default ListDestinations;

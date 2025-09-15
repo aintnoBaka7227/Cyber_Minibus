@@ -1,17 +1,21 @@
 import AdminNavbar from "../../components/admin/AdminNavbar";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import Footer from "../../components/Footer";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import { useEffect } from "react";
 import Loading from "../../components/Loading";
 
 const Layout = () => {
-  const { isAdmin, fetchIsAdmin } = useAppContext();
+  const { isAdmin, isAuthenticated } = useAppContext();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchIsAdmin();
-  }, [fetchIsAdmin]);
+    // Redirect non-admin authenticated users away from admin routes
+    if (isAuthenticated && !isAdmin) {
+      navigate('/');
+    }
+  }, [isAdmin, isAuthenticated, navigate]);
 
   return isAdmin ? (
     <>

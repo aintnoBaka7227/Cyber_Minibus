@@ -1,120 +1,92 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { createContext, useContext, useState, useEffect } from "react";
+import api from "../api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState(true); // Set to true for admin access without auth
-  const [shows, setShows] = useState([]);
-  const [favoriteMovies, setFavoriteMovies] = useState([]);
-
-  const image_base_url = import.meta.env.VITE_TMDB_IMAGE_BASE_URL;
-
-  // Use Clerk hooks but provide fallbacks
-  const { user } = useUser() || {};
-  const { getToken } = useAuth() || {};
-  // eslint-disable-next-line no-unused-vars
+  const [isAdmin, setIsAdmin] = useState(false); 
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+   
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
 
-  // Create a fallback user for admin panel
-  const fallbackUser = {
-    id: "admin-temp",
-    firstName: "Admin",
-    lastName: "User",
-    imageUrl: "/src/assets/profile.png"
-  };
 
-  const fetchIsAdmin = async () => {
-    // For now, bypass the API call and set admin to true
-    setIsAdmin(true);
-    
-    /* Commented out original logic - uncomment when custom auth is ready
+  const login = async (email, password) => {
     try {
-      const { data } = await axios.get("/api/admin/is-admin", {
-        headers: { Authorization: `Bearer ${await getToken()}` },
-      });
-
-      setIsAdmin(data.isAdmin);
-
-      if (!data.isAdmin && location.pathname.startsWith("/admin")) {
-        navigate("/");
-        toast.error("You are not authorized to access admin dashboard");
-      }
+      const { data } = await api.post("/auth/login", { email, password }, { withCredentials: true })
+      console.log(data.user);
+      setUser(data.user);
+      setIsAuthenticated(true);
+      setIsAdmin(data.user.role === "admin");
+      toast.success("logged in");
+      return data.user;
     } catch (error) {
-      console.error(error);
-    }
-    */
-  };
-
-  const fetchShows = async () => {
-    try {
-      const { data } = await axios.get("/api/show/all");
-
-      if (data.success) {
-        setShows(data.shows);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.error(error);
+      toast.error(error.response?.data?.message || "login failed");
+      return null;
     }
   };
 
-  const fetchFavoriteMovies = async () => {
-    // Bypass favorite movies for now
-    setFavoriteMovies([]);
-    
-    /* Commented out original logic - uncomment when custom auth is ready
+  
+  // logout
+  const logout = async () => {
     try {
-      const { data } = await axios.get("/api/user/favorites", {
-        headers: { Authorization: `Bearer ${await getToken()}` },
-      });
-
-      if (data.success) {
-        setFavoriteMovies(data.movies);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.error(error);
+      const { data } = await api.post("/auth/logout", {}, {withCredentials: true});
+      setUser(null);
+      setIsAuthenticated(false);
+      setIsAdmin(false);
+      toast.success(data.message);
+      navigate("/");
+    } catch(error) {
+      toast.error("logout issue");
     }
-    */
   };
+
+  // register
+  const register = async({ email, username, password }) => {
+    try {
+      const { data } = await api.post("/auth/register", { email, username, password, role: "client" }, {withCredentials: true});
+      setUser(data.user);
+      setIsAuthenticated(true);
+      setIsAdmin(data.user.role === "admin");
+      toast.success("registered");
+      return data.user;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "register fail");
+      return null;
+    }
+  };
+
   useEffect(() => {
-    fetchShows();
-    // Initialize admin access and empty favorites for non-auth mode
-    fetchIsAdmin();
-    fetchFavoriteMovies();
+    const fetchMe = async () => {
+      try {
+        const { data } = await api.get("/auth/me", { withCredentials: true });
+        setUser(data.user);
+        setIsAuthenticated(true);
+        setIsAdmin(data.user.role === "admin");
+        console.log(data);
+      } catch (error) {
+        console.log(error);
+        setUser(null);
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+      }
+    };
+    fetchMe();
   }, []);
 
-  // Remove the user-dependent useEffect for now
-  /* Commented out - uncomment when custom auth is ready
-  useEffect(() => {
-    if (user) {
-      fetchIsAdmin();
-      fetchFavoriteMovies();
-    }
-  }, [user]);
-  */
-
   const value = {
-    axios,
-    fetchIsAdmin,
-    user: user || fallbackUser, // Use fallback user if no Clerk user
-    getToken: getToken || (() => Promise.resolve(null)), // Provide fallback getToken
-    navigate,
+    api,
+    user,
+    isAuthenticated,
     isAdmin,
-    shows,
-    favoriteMovies,
-    fetchFavoriteMovies,
-    image_base_url,
+    navigate,
+    login,
+    logout,
+    register,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
