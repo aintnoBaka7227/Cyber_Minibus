@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAdmin } from "../middleware/auth.js";
+import { requireAuth, requireAdmin } from "../middleware/auth.js";
 
 import {
   getRevenue,
@@ -9,7 +9,7 @@ import {
 
 const adminRouter = express.Router();
 
-adminRouter.get("/get-revenue", requireAdmin, getRevenue);   // The total amount made from each booking will be added to generate the revenue
-adminRouter.get("/all-users", requireAdmin, getAllUsers);   // Admin will be able to see all the users using the app
+adminRouter.get("/get-revenue", requireAuth, requireAdmin, getRevenue);   // The total amount made from each booking will be added to generate the revenue
+adminRouter.get("/all-users", requireAuth, requireAdmin, getAllUsers);   // Admin will be able to see all the users using the app
 
 export default adminRouter;

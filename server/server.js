@@ -4,6 +4,7 @@ import "dotenv/config";
 import connectDB from "./configs/db.js";
 import { authRouter } from "./routes/authRoutes.js";
 import cookieParser from "cookie-parser";
+import adminRouter from "./routes/adminRoutes.js";
 // import { userRouter } from "./routes/userRoutes.js"
 
 const app = express();
@@ -25,6 +26,7 @@ app.get("/", (req, res) => {
 app.use(cookieParser());
 
 app.use("/api/auth", authRouter);
+app.use("/api/admin", adminRouter);
 // app.use("api/user", userRouter);
 
 app.listen(port, () =>
