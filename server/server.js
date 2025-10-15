@@ -4,7 +4,9 @@ import "dotenv/config";
 import connectDB from "./configs/db.js";
 import { authRouter } from "./routes/authRoutes.js";
 import cookieParser from "cookie-parser";
-// import { userRouter } from "./routes/userRoutes.js"
+import { userRouter } from "./routes/userRoutes.js"
+import { destinationRouter } from "./routes/destinationsRoutes.js"
+import { bookingRouter } from "./routes/bookingRoutes.js"
 
 const app = express();
 const port = 3000;
@@ -25,7 +27,9 @@ app.get("/", (req, res) => {
 app.use(cookieParser());
 
 app.use("/api/auth", authRouter);
-// app.use("api/user", userRouter);
+app.use("/api/user", userRouter);
+app.use("/api/destination", destinationRouter);
+app.use("/api/booking", bookingRouter);
 
 app.listen(port, () =>
   console.log(`Server listening at http://localhost:${port}`)

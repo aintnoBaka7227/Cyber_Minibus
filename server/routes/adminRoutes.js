@@ -1,17 +1,15 @@
-// import express from "express";
-// import { protectAdmin } from "../middleware/auth.js";
-// import {
-//   getAllBookings,
-//   getAllShows,
-//   getDashboardData,
-//   isAdmin,
-// } from "../controllers/adminController.js";
+import express from "express";
+import { requireAuth, requireAdmin } from "../middleware/auth.js";
 
-// const adminRouter = express.Router();
+import {
+  getRevenue,
+  getAllUsers,
+} from "../controllers/adminController.js";
 
-// adminRouter.get("/is-admin", protectAdmin, isAdmin);
-// adminRouter.get("/dashboard", protectAdmin, getDashboardData);
-// adminRouter.get("/all-shows", protectAdmin, getAllShows);
-// adminRouter.get("/all-bookings", protectAdmin, getAllBookings);
 
-// export default adminRouter;
+const adminRouter = express.Router();
+
+adminRouter.get("/get-revenue", requireAuth, requireAdmin, getRevenue);   // The total amount made from each booking will be added to generate the revenue
+adminRouter.get("/all-users", requireAuth, requireAdmin, getAllUsers);   // Admin will be able to see all the users using the app
+
+export default adminRouter;
