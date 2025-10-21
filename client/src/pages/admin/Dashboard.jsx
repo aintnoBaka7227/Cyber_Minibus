@@ -4,39 +4,86 @@ import {
   RouteIcon,
   UsersIcon,
 } from "lucide-react";
-import { useState } from "react";
-import { destinations } from "../../assets/dummy";
+import { useState, useEffect } from "react";
 import DestinationCard from "../../components/DestinationCard";
+import { destinationApi, adminApi } from "../../api";
+import toast from "react-hot-toast";
+import Loading from "../../components/Loading";
 
 const Dashboard = () => {
+  const currency = import.meta.env.VITE_CURRENCY;
   const [showAll, setShowAll] = useState(false);
+  const [destinations, setDestinations] = useState([]);
+  const [stats, setStats] = useState({
+    totalBookings: 0,
+    totalRevenue: 0,
+    activeRoutes: 0,
+    totalUsers: 0,
+  });
+  const [loading, setLoading] = useState(true);
   
-  // Placeholder data - will be replaced with real data when authentication is implemented
+  // Fetch dashboard statistics
+  const fetchDashboardStats = async () => {
+    try {
+      const data = await adminApi.getDashboardStats();
+      if (data.success) {
+        setStats(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      toast.error("Failed to load dashboard statistics");
+    }
+  };
+
+  // Fetch all destinations
+  const fetchDestinations = async () => {
+    try {
+      const data = await destinationApi.getAllDestinations();
+      if (data.success) {
+        setDestinations(data.destinations);
+      }
+    } catch (error) {
+      console.error("Error fetching destinations:", error);
+      toast.error("Failed to load destinations");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardStats();
+    fetchDestinations();
+  }, []);
+  
   const dashboardCards = [
     {
       title: "Total Bookings",
-      value: "0",
+      value: stats.totalBookings.toString(),
       icon: ChartLineIcon,
     },
     {
       title: "Total Revenue",
-      value: "$0",
+      value: `${currency}${stats.totalRevenue.toFixed(2)}`,
       icon: CircleDollarSignIcon,
     },
     {
       title: "Active Routes",
-      value: "0",
+      value: stats.activeRoutes.toString(),
       icon: RouteIcon,
     },
     {
       title: "Total Users",
-      value: "0",
+      value: stats.totalUsers.toString(),
       icon: UsersIcon,
     },
   ];
 
   // Show only first 4 destinations unless "Show More" is clicked
   const displayedDestinations = showAll ? destinations : destinations.slice(0, 4);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="p-6">
