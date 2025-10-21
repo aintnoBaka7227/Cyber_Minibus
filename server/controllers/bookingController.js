@@ -2,61 +2,72 @@ import mongoose from "mongoose";
 import Booking from "../models/Booking.js";
 import TripInstance from "../models/TripInstance.js";
 import User from "../models/User.js";
+import { ensureTripInstance } from "../utils/tripInstance.js";
 
 // POST /create-booking
 export const createBooking = async (req, res) => {
   try {
-    const { tripInstanceID, seats } = req.body;
+    const { tripInstanceID, seats, templateId, date, time } = req.body;
     const userID = req.user?.id;
 
-    if (!mongoose.Types.ObjectId.isValid(tripInstanceID)) {
-      return res.status(400).json({ success: false, message: "Invalid tripInstanceID" });
+    if (!Array.isArray(seats) || seats.length === 0) {
+      return res.status(400).json({ success: false, message: "seats array is required" });
     }
 
-    const tripInstance = await TripInstance.findById(tripInstanceID);
-    if (!tripInstance) {
-      return res.status(404).json({ success: false, message: "Trip instance not found" });
+    let instanceId = tripInstanceID;
+
+    if (!instanceId) {
+      if (!templateId || !date || !time) {
+        return res.status(400).json({ success: false, message: "Provide tripInstanceID or (templateId, date, time)" });
+      }
+      const instance = await ensureTripInstance({ templateId, date, time });
+      instanceId = instance._id;
+    } else {
+      if (!mongoose.Types.ObjectId.isValid(instanceId)) {
+        return res.status(400).json({ success: false, message: "Invalid tripInstanceID" });
+      }
+      const exists = await TripInstance.exists({ _id: instanceId });
+      if (!exists) {
+        return res.status(404).json({ success: false, message: "Trip instance not found" });
+      }
     }
 
-    // normalize bookedSeats
-    const bookedSeats = Array.isArray(tripInstance.bookedSeats) ? tripInstance.bookedSeats : [];
+    // Atomically reserve seats; ensure none of requested seats are already taken
+    const updated = await TripInstance.findOneAndUpdate(
+      { _id: instanceId, bookedSeats: { $nin: seats } },
+      { $addToSet: { bookedSeats: { $each: seats } } },
+      { new: true }
+    ).lean();
 
-    // find intersection
-    const alreadyBooked = seats.filter(seat => bookedSeats.includes(seat));
-
-    if (alreadyBooked.length > 0) {
+    if (!updated) {
+      const current = await TripInstance.findById(instanceId).select("bookedSeats").lean();
+      const taken = (current?.bookedSeats || []).filter(s => seats.includes(s));
       return res.status(400).json({
         success: false,
-        message: `Seats already booked: ${alreadyBooked.join(", ")}`,
-        bookedSeats,
+        message: `Seats already booked: ${taken.join(", ")}`,
+        bookedSeats: current?.bookedSeats || [],
       });
     }
 
-    // create booking record
     const booking = new Booking({
-      userID: userID,
-      tripInstanceID,
+      userID,
+      tripInstanceID: instanceId,
       seats,
-      status: "paid" // or "pending" depending on flow
+      status: "paid",
     });
-
     await booking.save();
-    
-    // only save the bookedseats in the database if the booking is successful otherwise not
-    tripInstance.bookedSeats = Array.from(new Set([...tripInstance.bookedSeats, ...seats]));
-    await tripInstance.save();
 
     return res.status(201).json({
       success: true,
       message: "Booking created successfully",
-      booking
+      booking,
     });
   } catch (error) {
     console.error("createBooking error:", error);
     return res.status(500).json({
       success: false,
       message: "Error creating booking",
-      error: error.message
+      error: error.message,
     });
   }
 };
