@@ -25,7 +25,7 @@ export const destinations = [
     teaser: "Coastal town with stunning beaches",
     description: "Visit Port Elliot for its scenic beaches and historic jetty...",
     rating: 4.2,
-    mainphoto: "https://images.unsplash.com/photo-1505142468610-359e7d316be0?q=80&w=1000&auto=format&fit=crop",
+    mainphoto: "/portelliot.jpeg",
     tripTemplates: [
       {
         _id: "650000000000000000020002",
