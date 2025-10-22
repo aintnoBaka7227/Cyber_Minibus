@@ -5,7 +5,8 @@ import { StarIcon, MapPin, ChevronDown } from "lucide-react";
 import DateSelect from "../components/DateSelect";
 import DestinationCard from "../components/DestinationCard";
 import { useAppContext } from "../context/AppContext";
-import { destinations } from "../assets/dummy";
+import { destinationApi } from "../api";
+import toast from "react-hot-toast";
 
 const DestinationDetails = () => {
   const navigate = useNavigate();
@@ -13,19 +14,8 @@ const DestinationDetails = () => {
   const [destination, setDestination] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState("Start from ...");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  // eslint-disable-next-line no-unused-vars
-  const locations = [
-    "Adelaide CBD",
-    "Barossa Valley",
-    "Clare Valley",
-    "Flinders Range",
-    "Hahndorf",
-    "Mount Gambier",
-    "Port Elliot",
-    "Robe",
-    "Whyalla"
-  ];
+  const [relatedDestinations, setRelatedDestinations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleBookTrip = () => {
     // Always scroll to location selection first
@@ -33,16 +23,41 @@ const DestinationDetails = () => {
     if (locationSection) {
       locationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  };  useAppContext();
+  };  
+  
+  useAppContext();
 
   useEffect(() => {
-    const getDestination = () => {
-      const found = destinations.find(dest => dest._id === id);
-      if (found) {
-        setDestination(found);
+    const fetchDestinationDetails = async () => {
+      try {
+        setLoading(true);
+        const data = await destinationApi.getDestinationDetails(id);
+        if (data.success) {
+          setDestination(data.destination);
+        } else {
+          toast.error("Failed to load destination details");
+        }
+      } catch (error) {
+        console.error("Error fetching destination:", error);
+        toast.error(error.response?.data?.message || "Failed to load destination");
+      } finally {
+        setLoading(false);
       }
     };
-    getDestination();
+
+    const fetchAllDestinations = async () => {
+      try {
+        const data = await destinationApi.getAllDestinations();
+        if (data.success) {
+          setRelatedDestinations(data.destinations.filter(dest => dest._id !== id));
+        }
+      } catch (error) {
+        console.error("Error fetching related destinations:", error);
+      }
+    };
+
+    fetchDestinationDetails();
+    fetchAllDestinations();
   }, [id]);
 
   useEffect(() => {
@@ -115,7 +130,7 @@ const DestinationDetails = () => {
             
             {isDropdownOpen && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                {destination.tripTemplates[0].startPoints.map((location) => (
+                {destination.tripTemplates && destination.tripTemplates[0]?.startPoints?.map((location) => (
                   <button
                     key={location.id}
                     onClick={() => {
@@ -134,7 +149,7 @@ const DestinationDetails = () => {
         {/* Date and Time Selection Section */}
         <div id="dateSelect" className="mt-12">
           <DateSelect
-            dateTime={destination.tripTemplates[0].departureTimes}
+            dateTime={destination.tripTemplates && destination.tripTemplates[0]?.departureTimes}
             id={id}
             selectedLocation={selectedLocation}
           />
@@ -145,8 +160,8 @@ const DestinationDetails = () => {
       <p className="text-lg font-medium mt-20 mb-8">You May Also Like</p>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-        {destinations.filter(dest => dest._id !== id).slice(0, 4).map((dest, index) => (
-          <DestinationCard key={index} destination={dest} />
+        {relatedDestinations.slice(0, 4).map((dest) => (
+          <DestinationCard key={dest._id} destination={dest} />
         ))}
       </div>
 
@@ -163,7 +178,26 @@ const DestinationDetails = () => {
       </div>
     </div>
   ) : 
-    <div>Loading...</div>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        {loading ? (
+          <>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading destination...</p>
+          </>
+        ) : (
+          <>
+            <p className="text-xl text-gray-400">Destination not found</p>
+            <button
+              onClick={() => navigate("/routes")}
+              className="mt-4 px-6 py-2 bg-primary text-black rounded-full hover:bg-primary-dull transition"
+            >
+              Back to Destinations
+            </button>
+          </>
+        )}
+      </div>
+    </div>
 
 };
 

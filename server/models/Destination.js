@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const startPointSchema = new mongoose.Schema({
-  id: { type: mongoose.Schema.Types.ObjectId, required: true },
+  id: { type: String, required: true },
   name: { type: String, required: true }
 });
 

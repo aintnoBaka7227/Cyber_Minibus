@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { MenuIcon, TicketPlus, XIcon, LogOut, User } from "lucide-react";
@@ -83,7 +83,7 @@ const Navbar = () => {
                 alt="Profile" 
                 className="w-8 h-8 rounded-full"
               />
-              <span className="text-white">{user?.name || "User"}</span>
+              <span className="text-white">{user?.username || user?.firstName || "User"}</span>
             </button>
             
             {showUserMenu && (

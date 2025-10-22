@@ -1,13 +1,43 @@
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BlurCircle from "./BlurCircle";
 import DestinationCard from "./DestinationCard";
-import { destinations } from "../assets/dummy";
+import { destinationApi } from "../api";
 
 const FeaturedSection = () => {
   const navigate = useNavigate();
-   
-  //const { shows } = useAppContext();
+  const [destinations, setDestinations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDestinations = async () => {
+      try {
+        setLoading(true);
+        const data = await destinationApi.getAllDestinations();
+        if (data.success) {
+          // Show only first 4 destinations
+          setDestinations(data.destinations.slice(0, 4));
+        }
+      } catch (error) {
+        console.error("Error fetching featured destinations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDestinations();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="px-6 md:px-16 lg:px-24 xl:px-44 py-20">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-6 md:px-16 lg:px-24 xl:px-44 overflow-hidden">

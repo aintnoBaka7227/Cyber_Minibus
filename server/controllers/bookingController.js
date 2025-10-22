@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Booking from "../models/Booking.js";
 import TripInstance from "../models/TripInstance.js";
 import User from "../models/User.js";
+import Destination from "../models/Destination.js";
 // Helper that finds or creates a TripInstance by (templateId, date, time)
 // and is safe under races (unique index + upsert)
 import { ensureTripInstance } from "../utils/tripInstance.js";
@@ -87,19 +88,49 @@ export const getBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
       .populate("userID", "username email firstName lastName")
-      .populate({
-        path: "tripInstanceID",
-        populate: {
-          path: "tripTemplateID",
-          model: "Destination", // if tripTemplateID references destination
-          select: "name teaser"
+      .populate({ path: "tripInstanceID", model: "TripInstance" });
+
+    // Manually enrich bookings with destination and trip template data
+    const enrichedBookings = await Promise.all(
+      bookings.map(async (booking) => {
+        const bookingObj = booking.toObject();
+        
+        if (bookingObj.tripInstanceID?.tripTemplateID) {
+          const tripTemplateId = bookingObj.tripInstanceID.tripTemplateID;
+          
+          // Find the destination that contains this trip template
+          const destination = await Destination.findOne({
+            "tripTemplates._id": tripTemplateId
+          });
+          
+          if (destination) {
+            // Find the specific trip template in the destination
+            const tripTemplate = destination.tripTemplates.find(
+              template => template._id.toString() === tripTemplateId.toString()
+            );
+            
+            if (tripTemplate) {
+              // Replace tripTemplateID with enriched data
+              bookingObj.tripInstanceID.tripTemplateID = {
+                _id: destination._id,
+                name: destination.name,
+                mainphoto: destination.mainphoto,
+                price: tripTemplate.price,
+                startPoints: tripTemplate.startPoints,
+                departureTimes: tripTemplate.departureTimes
+              };
+            }
+          }
         }
-      });
+        
+        return bookingObj;
+      })
+    );
 
     return res.status(200).json({
       success: true,
-      count: bookings.length,
-      bookings
+      count: enrichedBookings.length,
+      bookings: enrichedBookings
     });
   } catch (error) {
     console.error("getBookings error:", error);

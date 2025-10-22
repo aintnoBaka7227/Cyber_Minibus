@@ -64,11 +64,35 @@ export const addDestination = async (req, res) => {
       });
     }
 
+    // Validate tripTemplates if provided
+    if (tripTemplates && tripTemplates.length > 0) {
+      for (const template of tripTemplates) {
+        if (!template.price || template.price <= 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Trip template must have a valid price",
+          });
+        }
+        if (!template.startPoints || template.startPoints.length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Trip template must have at least one start point",
+          });
+        }
+        if (!template.departureTimes || template.departureTimes.length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Trip template must have at least one departure time",
+          });
+        }
+      }
+    }
+
     const newDestination = new Destination({
       name,
       teaser,
       description,
-      rating,
+      rating: rating || 0,
       mainphoto,
       tripTemplates: tripTemplates || [],
     });

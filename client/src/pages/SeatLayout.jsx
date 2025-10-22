@@ -2,25 +2,36 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Loading from "../components/Loading";
 import { ArrowRightIcon, ClockIcon } from "lucide-react";
-import isoTimeFormat from "../lib/isoTimeFormat";
 import BlurCircle from "../components/BlurCircle";
 import toast from "react-hot-toast";
 import { useAppContext } from "../context/AppContext";
-import { destinations } from "../assets/dummy";
+import { destinationApi, bookingApi } from "../api";
 
 const SeatLayout = () => {
   // Bus seating arrangement: 8 rows (A-H), 4 columns (1-4)
   const busRows = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
-  const { id } = useParams();
+  const { id, date: urlDate } = useParams();
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [selectedTime, setSelectedTime] = useState(null);
   const [destination, setDestination] = useState(null);
   const [occupiedSeats, setOccupiedSeats] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
   const { user } = useAppContext();
+
+  // Get selected date from URL if available
+  useEffect(() => {
+    if (urlDate) {
+      // Date from URL parameter
+      setSelectedTime({ 
+        time: null,
+        date: urlDate
+      });
+    }
+  }, [urlDate]);
 
   const handleSeatClick = (seatId) => {
     if (!selectedTime) {
@@ -103,36 +114,78 @@ const SeatLayout = () => {
     try {
       if (!user) return toast.error("Please login to proceed");
 
-      if (!selectedTime || !selectedSeats.length)
+      if (!selectedTime?.time || !selectedSeats.length) {
         return toast.error("Please select a time and seats");
+      }
 
-      // For demo purposes, just show success message
-      toast.success(`Successfully booked seats: ${selectedSeats.join(", ")} for ${isoTimeFormat(selectedTime.time)}`);
+      // Get date from URL params
+      const bookingDate = urlDate || selectedTime.date;
       
-      // Optional: Navigate back to routes or show confirmation
-      setTimeout(() => {
-        navigate("/routes");
-      }, 2000);
+      if (!bookingDate || !destination?.tripTemplates?.[0]?._id) {
+        return toast.error("Please select date and time");
+      }
+
+      // Create booking with trip template info
+      // Backend will create/find trip instance
+      const bookingData = {
+        // Server expects `templateId` when not providing a `tripInstanceID`
+        templateId: destination.tripTemplates[0]._id,
+        date: bookingDate,
+        time: selectedTime.time,
+        seats: selectedSeats,
+      };
+
+      const data = await bookingApi.createBooking(bookingData);
+      
+      if (data.success) {
+        toast.success(`Successfully booked seats: ${selectedSeats.join(", ")}`);
+        
+        // Navigate to bookings page
+        setTimeout(() => {
+          navigate("/my-bookings");
+        }, 1500);
+      } else {
+        toast.error(data.message || "Failed to create booking");
+      }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Booking error:", error);
+      toast.error(error.response?.data?.message || "Failed to create booking");
     }
   };
 
   useEffect(() => {
-    // Load destination data on component mount
-    const found = destinations.find(dest => dest._id === id);
-    if (found) {
-      setDestination(found);
-    }
+    const fetchDestinationDetails = async () => {
+      try {
+        setLoading(true);
+        const data = await destinationApi.getDestinationDetails(id);
+        if (data.success) {
+          setDestination(data.destination);
+        } else {
+          toast.error("Failed to load destination");
+        }
+      } catch (error) {
+        console.error("Error fetching destination:", error);
+        toast.error(error.response?.data?.message || "Failed to load destination");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDestinationDetails();
   }, [id]);
 
   useEffect(() => {
-    if (selectedTime) {
-      // Use dummy occupied seats for demo purposes - updated for bus layout
+    if (selectedTime?.time) {
+      // TODO: Fetch actual occupied seats from the trip instance
+      // For now, using dummy data
       const dummyOccupiedSeats = ["A1", "B3", "C2", "E4", "G1", "H2"];
       setOccupiedSeats(dummyOccupiedSeats);
     }
   }, [selectedTime]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return destination ? (
     <div className="flex flex-col md:flex-row px-6 md:px-16 lg:px-40 py-30 md:pt-50">
@@ -140,7 +193,7 @@ const SeatLayout = () => {
       <div className="w-60 bg-primary/10 border border-primary/20 rounded-lg py-10 h-max md:sticky md:top-30">
         <p className="text-lg font-semibold px-6">Available Timings</p>
         <div className="mt-5 space-y-1">
-          {destination.tripTemplates[0].departureTimes.map((time) => (
+          {destination.tripTemplates && destination.tripTemplates[0]?.departureTimes?.map((time) => (
             <div
               key={time}
               onClick={() => setSelectedTime({ time })}
