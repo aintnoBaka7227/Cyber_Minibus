@@ -1,54 +1,118 @@
+// server/controllers/userController.js
+import Booking from "../models/Booking.js";
 import User from "../models/User.js";
-import Booking from "../models/Booking.js"
+import mongoose from "mongoose";
 
+// helper to check authorization: allow if requester is same user or is admin
+const isAuthorized = (reqUser, targetUserId) => {
+  if (!reqUser) return false;
+  if (reqUser.role === "admin") return true;
+  // reqUser.id may be stored as string or _id; compare as strings
+  return String(reqUser.id || reqUser._id) === String(targetUserId);
+};
+
+// GET /user/bookings/:userId
 export const getUserBookings = async (req, res) => {
-    try {
-        const booking = await Booking.find({ userID: req.user.id });
-        res.json({ success: true, booking });
-    } catch (error) {
-        return res.status(500).json({ success:false, message: error.message});
-    }
-}
-
-export const getUserProfile = async (req, res) => {
-    try {
-        const profile = await User.findById(req.user.id)
-        res.json({ success: true, profile });
-    } catch (error) {
-        return res.status(500).json({ success: false, message: error.message});
-    }
-}
-
-export const updateUserProfile = async (req, res) => {
   try {
-    const { username, password, firstname, lastname, email, phone, address, role } = req.body;
+    const { userId } = req.params;
 
-    const updates = { username, firstname, lastname, email, phone, address, role };
-    if (password) {
-      updates.password = password; 
+    // validate userId is an ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ success: false, message: "Invalid userId" });
     }
 
-    const user = await User.findByIdAndUpdate(req.user.id, { $set: updates }, { new: true });
+    // authorization: same user or admin
+    if (!isAuthorized(req.user, userId)) {
+      return res.status(403).json({ success: false, message: "Forbidden: not authorized" });
+    }
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    // query bookings where userID matches
+    const bookings = await Booking.find({ userID: userObjectId })
+      .populate({ path: "tripInstanceID", model: "TripInstance" })
+      .populate({ path: "userID", select: "username email firstName lastName" });
 
+    return res.status(200).json({ success: true, bookings });
+  } catch (error) {
+    console.error("getUserBookings error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching bookings",
+      error: error.message,
+    });
+  }
+};
+
+// GET /user/profile/:userId
+export const getUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ success: false, message: "Invalid userId" });
+    }
+
+    if (!isAuthorized(req.user, userId)) {
+      return res.status(403).json({ success: false, message: "Forbidden: not authorized" });
+    }
+
+    // exclude password
+    const user = await User.findById(userId).select("-password");
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "User profile updated",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        phone: user.phone,
-        address: user.address,
+    return res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.error("getUserProfile error:", error);
+    return res.status(500).json({ success: false, message: "Error fetching profile", error: error.message });
+  }
+};
+
+// POST /user/update-profile/:userId
+export const updateUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ success: false, message: "Invalid userId" });
+    }
+
+    // auth check
+    if (!isAuthorized(req.user, userId)) {
+      return res.status(403).json({ success: false, message: "Forbidden: not authorized" });
+    }
+
+    // only allow certain fields to be updated
+    const allowedFields = ["username", "firstName", "lastName", "email", "phone", "address"];
+    const updates = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
       }
+    }
+
+    // find and update
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updates },
+      { new: true, runValidators: true } // return updated doc
+    ).select("-password"); // exclude password
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated",
+      user: updatedUser,
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("updateUserProfile error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating profile",
+      error: error.message,
+    });
   }
 };
