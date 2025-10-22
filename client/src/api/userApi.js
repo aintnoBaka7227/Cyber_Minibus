@@ -13,7 +13,7 @@ export const userApi = {
    */
   getUserBookings: async (userId) => {
     const response = await api.get(`/user/bookings/${userId}`);
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**
@@ -23,7 +23,7 @@ export const userApi = {
    */
   getUserProfile: async (userId) => {
     const response = await api.get(`/user/profile/${userId}`);
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**
@@ -39,6 +39,6 @@ export const userApi = {
    */
   updateUserProfile: async (userId, profileData) => {
     const response = await api.post(`/user/update-profile/${userId}`, profileData);
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 };

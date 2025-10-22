@@ -12,17 +12,18 @@ export const destinationApi = {
    */
   getAllDestinations: async () => {
     const response = await api.get("/destination/all-destinations");
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**
    * Get destination details by ID
    * @param {string} destinationId - Destination ID
-   * @returns {Promise} Response with destination details
+   * @returns {Promise<{ success: boolean, destination?: any, message?: string, httpStatus: number }>} Response with destination details and HTTP status
    */
   getDestinationDetails: async (destinationId) => {
     const response = await api.get(`/destination/get-destination-details/${destinationId}`);
-    return response.data;
+    // Backward-compatible: spread API data and add httpStatus
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**

@@ -5,7 +5,7 @@ import { ArrowRightIcon, ClockIcon } from "lucide-react";
 import BlurCircle from "../components/BlurCircle";
 import toast from "react-hot-toast";
 import { useAppContext } from "../context/AppContext";
-import { destinationApi, bookingApi } from "../api";
+import { destinationApi, bookingApi, tripApi } from "../api";
 
 const SeatLayout = () => {
   // Bus seating arrangement: 8 rows (A-H), 4 columns (1-4)
@@ -175,13 +175,25 @@ const SeatLayout = () => {
   }, [id]);
 
   useEffect(() => {
-    if (selectedTime?.time) {
-      // TODO: Fetch actual occupied seats from the trip instance
-      // For now, using dummy data
-      const dummyOccupiedSeats = ["A1", "B3", "C2", "E4", "G1", "H2"];
-      setOccupiedSeats(dummyOccupiedSeats);
-    }
-  }, [selectedTime]);
+    const fetchOccupiedSeats = async () => {
+      try {
+        if (!selectedTime?.time) return;
+        const templateId = destination?.tripTemplates?.[0]?._id;
+        const date = urlDate || selectedTime?.date; // prefer URL date if present
+        if (!templateId || !date) return;
+
+        const data = await tripApi.getInstanceByParams({ templateId, date, time: selectedTime.time });
+        if (data?.success) {
+          setOccupiedSeats(Array.isArray(data.bookedSeats) ? data.bookedSeats : []);
+        }
+      } catch (err) {
+        // Silently ignore and keep current state to avoid UX noise
+        console.error("Failed to fetch occupied seats", err);
+      }
+    };
+
+    fetchOccupiedSeats();
+  }, [selectedTime, destination, urlDate]);
 
   if (loading) {
     return <Loading />;

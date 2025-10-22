@@ -8,6 +8,7 @@ import { userRouter } from "./routes/userRoutes.js"
 import { destinationRouter } from "./routes/destinationsRoutes.js"
 import { bookingRouter } from "./routes/bookingRoutes.js"
 import adminRouter from "./routes/adminRoutes.js";
+import tripRouter from "./routes/tripInstanceRoutes.js";
 
 const app = express();
 const port = 3000;
@@ -32,6 +33,7 @@ app.use("/api/user", userRouter);
 app.use("/api/destination", destinationRouter);
 app.use("/api/booking", bookingRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/trip", tripRouter);
 
 app.listen(port, () =>
   console.log(`Server listening at http://localhost:${port}`)

@@ -20,7 +20,7 @@ export const bookingApi = {
    */
   createBooking: async (bookingData) => {
     const response = await api.post("/booking/create-booking", bookingData);
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**
@@ -29,7 +29,7 @@ export const bookingApi = {
    */
   getAllBookings: async () => {
     const response = await api.get("/booking/all-bookings");
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**
@@ -41,7 +41,7 @@ export const bookingApi = {
    */
   updateBooking: async (bookingId, updateData) => {
     const response = await api.post(`/booking/update-booking/${bookingId}`, updateData);
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**

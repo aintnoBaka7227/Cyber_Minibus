@@ -17,7 +17,7 @@ export const authApi = {
    */
   register: async (userData) => {
     const response = await api.post("/auth/register", userData);
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**
@@ -29,7 +29,7 @@ export const authApi = {
    */
   login: async (credentials) => {
     const response = await api.post("/auth/login", credentials);
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**
@@ -38,7 +38,7 @@ export const authApi = {
    */
   me: async () => {
     const response = await api.get("/auth/me");
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**
@@ -47,6 +47,6 @@ export const authApi = {
    */
   logout: async () => {
     const response = await api.post("/auth/logout");
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 };

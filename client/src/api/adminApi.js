@@ -12,7 +12,7 @@ export const adminApi = {
    */
   getDashboardStats: async () => {
     const response = await api.get("/admin/dashboard-stats");
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**
@@ -26,7 +26,7 @@ export const adminApi = {
    */
   getAllUsers: async (params = {}) => {
     const response = await api.get("/admin/all-users", { params });
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 
   /**
@@ -39,6 +39,6 @@ export const adminApi = {
    */
   getRevenue: async (params = {}) => {
     const response = await api.get("/admin/get-revenue", { params });
-    return response.data;
+    return { ...response.data, httpStatus: response.status };
   },
 };
