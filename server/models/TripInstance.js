@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+// Stores a specific departure of a trip template on a given date/time
 const tripInstanceSchema = new mongoose.Schema({
   tripTemplateID: { type: mongoose.Schema.Types.ObjectId, ref: "Destination.tripTemplates", required: true },
   date: { type: Date, required: true },
@@ -7,7 +8,8 @@ const tripInstanceSchema = new mongoose.Schema({
   bookedSeats: [String]
 });
 
-// Uniqueness per (template, date-only, time) to avoid duplicates when creating on booking
+// Enforce one instance per (template, date-only, time).
+// This prevents two inserts for the same departure when requests race.
 tripInstanceSchema.index({ tripTemplateID: 1, date: 1, time: 1 }, { unique: true });
 
 export default mongoose.model("TripInstance", tripInstanceSchema);

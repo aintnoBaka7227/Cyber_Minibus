@@ -46,21 +46,24 @@ export const tripInstances = [
   {
     _id: "650000000000000000040001",
     tripTemplateID: "650000000000000000020001", // Hahndorf trip template
-    date: "2025-09-15",
+    // Store date as a Date at UTC midnight for consistency with other Date fields
+    date: new Date("2025-09-15T00:00:00.000Z"),
     time: "09:00",
     bookedSeats: ["A1","A2"] // booked by alice
   },
   {
     _id: "650000000000000000040002",
     tripTemplateID: "650000000000000000020001", // Hahndorf
-    date: "2025-09-16",
+    // Store date as a Date at UTC midnight for consistency with other Date fields
+    date: new Date("2025-09-16T00:00:00.000Z"),
     time: "10:00",
     bookedSeats: ["B1"] // booked by bob
   },
   {
     _id: "650000000000000000040003",
     tripTemplateID: "650000000000000000020002", // Port Elliot
-    date: "2025-09-15",
+    // Store date as a Date at UTC midnight for consistency with other Date fields
+    date: new Date("2025-09-15T00:00:00.000Z"),
     time: "12:30",
     bookedSeats: ["A1"] // booked by alice
   }

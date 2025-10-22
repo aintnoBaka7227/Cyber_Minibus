@@ -1,7 +1,9 @@
 import TripInstance from "../models/TripInstance.js";
 import mongoose from "mongoose";
+// Read-only preview helper that does not create a trip instance
 import { previewTripByParams } from "../utils/tripInstance.js";
 
+// Admin list: return raw trip instances (no populate) for overview
 export const getTrips = async (req, res) => {
   try {
     const trips = await TripInstance.find()

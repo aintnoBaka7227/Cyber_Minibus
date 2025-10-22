@@ -2,14 +2,19 @@ import mongoose from "mongoose";
 import Booking from "../models/Booking.js";
 import TripInstance from "../models/TripInstance.js";
 import User from "../models/User.js";
+// Helper that finds or creates a TripInstance by (templateId, date, time)
+// and is safe under races (unique index + upsert)
 import { ensureTripInstance } from "../utils/tripInstance.js";
 
 // POST /create-booking
+// Accepts either an existing `tripInstanceID` or the tuple
+// `{ templateId, date: "YYYY-MM-DD", time: "HH:mm" }` to create-on-book.
 export const createBooking = async (req, res) => {
   try {
     const { tripInstanceID, seats, templateId, date, time } = req.body;
     const userID = req.user?.id;
 
+    // Require at least one requested seat
     if (!Array.isArray(seats) || seats.length === 0) {
       return res.status(400).json({ success: false, message: "seats array is required" });
     }
@@ -17,12 +22,14 @@ export const createBooking = async (req, res) => {
     let instanceId = tripInstanceID;
 
     if (!instanceId) {
+      // No instance provided: ensure/find the instance for the natural key
       if (!templateId || !date || !time) {
         return res.status(400).json({ success: false, message: "Provide tripInstanceID or (templateId, date, time)" });
       }
       const instance = await ensureTripInstance({ templateId, date, time });
       instanceId = instance._id;
     } else {
+      // Validate provided instance id exists
       if (!mongoose.Types.ObjectId.isValid(instanceId)) {
         return res.status(400).json({ success: false, message: "Invalid tripInstanceID" });
       }
@@ -33,6 +40,7 @@ export const createBooking = async (req, res) => {
     }
 
     // Atomically reserve seats; ensure none of requested seats are already taken
+    // Single conditional update prevents double-booking without requiring a transaction
     const updated = await TripInstance.findOneAndUpdate(
       { _id: instanceId, bookedSeats: { $nin: seats } },
       { $addToSet: { bookedSeats: { $each: seats } } },
@@ -40,6 +48,7 @@ export const createBooking = async (req, res) => {
     ).lean();
 
     if (!updated) {
+      // If the conditional update failed, compute which seats conflicted for a clear error
       const current = await TripInstance.findById(instanceId).select("bookedSeats").lean();
       const taken = (current?.bookedSeats || []).filter(s => seats.includes(s));
       return res.status(400).json({
@@ -49,6 +58,7 @@ export const createBooking = async (req, res) => {
       });
     }
 
+    // Now that seats are reserved, persist the Booking document
     const booking = new Booking({
       userID,
       tripInstanceID: instanceId,
