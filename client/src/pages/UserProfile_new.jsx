@@ -7,7 +7,7 @@ import { userApi } from "../api";
 import toast from "react-hot-toast";
 
 const UserProfile = () => {
-  const { user } = useAppContext();
+  const { user, isLoadingAuth } = useAppContext();
   const [userInfo, setUserInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -20,14 +20,14 @@ const UserProfile = () => {
   });
 
   const getUserProfile = async () => {
-    if (!user?._id) {
+    if (!user?.id) {
       setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
-      const data = await userApi.getUserProfile(user._id);
+      const data = await userApi.getUserProfile(user.id);
 
       if (data.success) {
         setUserInfo(data.user);
@@ -45,9 +45,12 @@ const UserProfile = () => {
   };
 
   useEffect(() => {
-    getUserProfile();
+    // Wait for auth to complete before fetching profile
+    if (!isLoadingAuth) {
+      getUserProfile();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, isLoadingAuth]);
 
   const handleAvatarChange = (event) => {
     const file = event.target.files[0];
@@ -61,7 +64,7 @@ const UserProfile = () => {
   };
 
   const handleSaveProfile = async () => {
-    if (!user?._id) {
+    if (!user?.id) {
       toast.error("User not authenticated");
       return;
     }
@@ -75,7 +78,7 @@ const UserProfile = () => {
         email: userInfo.email,
       };
 
-      const data = await userApi.updateUserProfile(user._id, updateData);
+      const data = await userApi.updateUserProfile(user.id, updateData);
 
       if (data.success) {
         setUserInfo(data.user);
@@ -104,7 +107,7 @@ const UserProfile = () => {
     }));
   };
 
-  return !isLoading ? (
+  return !isLoading && !isLoadingAuth ? (
     <div className="relative px-6 md:px-16 lg:px-40 pt-30 md:pt-40 min-h-[80vh]">
       <BlurCircle top="100px" left="100px" />
       <div>

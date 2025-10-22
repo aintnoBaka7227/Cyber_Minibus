@@ -7,20 +7,20 @@ import toast from "react-hot-toast";
 
 const MyBookings = () => {
   const currency = import.meta.env.VITE_CURRENCY;
-  const { user } = useAppContext();
+  const { user, isLoadingAuth } = useAppContext();
 
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const getMyBookings = async () => {
-    if (!user?._id) {
+    if (!user?.id) {
       setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
-      const data = await userApi.getUserBookings(user._id);
+      const data = await userApi.getUserBookings(user.id);
 
       if (data.success) {
         setBookings(data.bookings);
@@ -38,11 +38,21 @@ const MyBookings = () => {
   };
 
   useEffect(() => {
-    getMyBookings();
+    // Wait for auth to complete before fetching bookings
+    if (!isLoadingAuth) {
+      getMyBookings();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, isLoadingAuth]);
 
   const handleCancelBooking = async (bookingId) => {
+    // Show confirmation dialog
+    const confirmed = window.confirm("Are you sure you want to cancel this booking? This action cannot be undone.");
+    
+    if (!confirmed) {
+      return; // User cancelled the action
+    }
+
     try {
       const data = await bookingApi.cancelBooking(bookingId);
       
@@ -65,7 +75,7 @@ const MyBookings = () => {
     }
   };
 
-  return !isLoading ? (
+  return !isLoading && !isLoadingAuth ? (
     <div className="relative px-6 md:px-16 lg:px-40 pt-30 md:pt-40 min-h-[80vh]">
       <BlurCircle top="100px" left="100px" />
       <div>
@@ -132,20 +142,23 @@ const MyBookings = () => {
                 </div>
                 
                 <div className="mt-4">
-                  {booking.status === "pending" ? (
-                    <button 
-                      onClick={() => handleCancelBooking(booking._id)}
-                      className="bg-gray-600 text-white px-6 py-2 rounded-lg font-medium cursor-pointer hover:bg-gray-700 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  ) : booking.status === "paid" ? (
-                    <div className="bg-green-600 text-white px-4 py-1 rounded-lg text-sm font-medium">
-                      Confirmed
+                  {booking.status === "cancelled" ? (
+                    <div className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                      Cancelled
                     </div>
                   ) : (
-                    <div className="bg-red-600 text-white px-4 py-1 rounded-lg text-sm font-medium">
-                      Cancelled
+                    <div className="flex flex-col gap-2">
+                      {booking.status === "paid" && (
+                        <div className="bg-green-600 text-white px-4 py-1 rounded-lg text-sm font-medium text-center">
+                          Confirmed
+                        </div>
+                      )}
+                      <button 
+                        onClick={() => handleCancelBooking(booking._id)}
+                        className="bg-red-500 text-white px-6 py-2 rounded-lg font-medium cursor-pointer hover:bg-red-600 transition-colors"
+                      >
+                        Cancel Booking
+                      </button>
                     </div>
                   )}
                 </div>
