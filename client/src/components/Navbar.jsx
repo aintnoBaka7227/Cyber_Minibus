@@ -87,13 +87,23 @@ const Navbar = () => {
             </button>
             
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-primary rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <button
+                  onClick={() => {
+                    navigate("/my-profile");
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-800 flex items-center gap-2"
+                >
+                  <User width={15} />
+                  My Profile
+                </button>
                 <button
                   onClick={() => {
                     navigate("/my-bookings");
                     setShowUserMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-100 text-black flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-800 flex items-center gap-2"
                 >
                   <TicketPlus width={15} />
                   My Bookings
@@ -103,7 +113,7 @@ const Navbar = () => {
                     logout();
                     setShowUserMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-100 text-black flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-800 flex items-center gap-2"
                 >
                   <LogOut width={15} />
                   Logout
