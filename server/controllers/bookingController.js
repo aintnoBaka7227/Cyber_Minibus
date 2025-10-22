@@ -2,61 +2,83 @@ import mongoose from "mongoose";
 import Booking from "../models/Booking.js";
 import TripInstance from "../models/TripInstance.js";
 import User from "../models/User.js";
+import Destination from "../models/Destination.js";
+// Helper that finds or creates a TripInstance by (templateId, date, time)
+// and is safe under races (unique index + upsert)
+import { ensureTripInstance } from "../utils/tripInstance.js";
 
 // POST /create-booking
+// Accepts either an existing `tripInstanceID` or the tuple
+// `{ templateId, date: "YYYY-MM-DD", time: "HH:mm" }` to create-on-book.
 export const createBooking = async (req, res) => {
   try {
-    const { tripInstanceID, seats } = req.body;
+    const { tripInstanceID, seats, templateId, date, time } = req.body;
     const userID = req.user?.id;
 
-    if (!mongoose.Types.ObjectId.isValid(tripInstanceID)) {
-      return res.status(400).json({ success: false, message: "Invalid tripInstanceID" });
+    // Require at least one requested seat
+    if (!Array.isArray(seats) || seats.length === 0) {
+      return res.status(400).json({ success: false, message: "seats array is required" });
     }
 
-    const tripInstance = await TripInstance.findById(tripInstanceID);
-    if (!tripInstance) {
-      return res.status(404).json({ success: false, message: "Trip instance not found" });
+    let instanceId = tripInstanceID;
+
+    if (!instanceId) {
+      // No instance provided: ensure/find the instance for the natural key
+      if (!templateId || !date || !time) {
+        return res.status(400).json({ success: false, message: "Provide tripInstanceID or (templateId, date, time)" });
+      }
+      const instance = await ensureTripInstance({ templateId, date, time });
+      instanceId = instance._id;
+    } else {
+      // Validate provided instance id exists
+      if (!mongoose.Types.ObjectId.isValid(instanceId)) {
+        return res.status(400).json({ success: false, message: "Invalid tripInstanceID" });
+      }
+      const exists = await TripInstance.exists({ _id: instanceId });
+      if (!exists) {
+        return res.status(404).json({ success: false, message: "Trip instance not found" });
+      }
     }
 
-    // normalize bookedSeats
-    const bookedSeats = Array.isArray(tripInstance.bookedSeats) ? tripInstance.bookedSeats : [];
+    // Atomically reserve seats; ensure none of requested seats are already taken
+    // Single conditional update prevents double-booking without requiring a transaction
+    const updated = await TripInstance.findOneAndUpdate(
+      { _id: instanceId, bookedSeats: { $nin: seats } },
+      { $addToSet: { bookedSeats: { $each: seats } } },
+      { new: true }
+    ).lean();
 
-    // find intersection
-    const alreadyBooked = seats.filter(seat => bookedSeats.includes(seat));
-
-    if (alreadyBooked.length > 0) {
+    if (!updated) {
+      // If the conditional update failed, compute which seats conflicted for a clear error
+      const current = await TripInstance.findById(instanceId).select("bookedSeats").lean();
+      const taken = (current?.bookedSeats || []).filter(s => seats.includes(s));
       return res.status(400).json({
         success: false,
-        message: `Seats already booked: ${alreadyBooked.join(", ")}`,
-        bookedSeats,
+        message: `Seats already booked: ${taken.join(", ")}`,
+        bookedSeats: current?.bookedSeats || [],
       });
     }
 
-    // create booking record
+    // Now that seats are reserved, persist the Booking document
     const booking = new Booking({
-      userID: userID,
-      tripInstanceID,
+      userID,
+      tripInstanceID: instanceId,
       seats,
-      status: "paid" // or "pending" depending on flow
+      status: "paid",
     });
-
     await booking.save();
-    
-    // only save the bookedseats in the database if the booking is successful otherwise not
-    tripInstance.bookedSeats = Array.from(new Set([...tripInstance.bookedSeats, ...seats]));
-    await tripInstance.save();
 
     return res.status(201).json({
       success: true,
       message: "Booking created successfully",
-      booking
+      booking,
     });
   } catch (error) {
     console.error("createBooking error:", error);
     return res.status(500).json({
       success: false,
       message: "Error creating booking",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -66,19 +88,49 @@ export const getBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
       .populate("userID", "username email firstName lastName")
-      .populate({
-        path: "tripInstanceID",
-        populate: {
-          path: "tripTemplateID",
-          model: "Destination", // if tripTemplateID references destination
-          select: "name teaser"
+      .populate({ path: "tripInstanceID", model: "TripInstance" });
+
+    // Manually enrich bookings with destination and trip template data
+    const enrichedBookings = await Promise.all(
+      bookings.map(async (booking) => {
+        const bookingObj = booking.toObject();
+        
+        if (bookingObj.tripInstanceID?.tripTemplateID) {
+          const tripTemplateId = bookingObj.tripInstanceID.tripTemplateID;
+          
+          // Find the destination that contains this trip template
+          const destination = await Destination.findOne({
+            "tripTemplates._id": tripTemplateId
+          });
+          
+          if (destination) {
+            // Find the specific trip template in the destination
+            const tripTemplate = destination.tripTemplates.find(
+              template => template._id.toString() === tripTemplateId.toString()
+            );
+            
+            if (tripTemplate) {
+              // Replace tripTemplateID with enriched data
+              bookingObj.tripInstanceID.tripTemplateID = {
+                _id: destination._id,
+                name: destination.name,
+                mainphoto: destination.mainphoto,
+                price: tripTemplate.price,
+                startPoints: tripTemplate.startPoints,
+                departureTimes: tripTemplate.departureTimes
+              };
+            }
+          }
         }
-      });
+        
+        return bookingObj;
+      })
+    );
 
     return res.status(200).json({
       success: true,
-      count: bookings.length,
-      bookings
+      count: enrichedBookings.length,
+      bookings: enrichedBookings
     });
   } catch (error) {
     console.error("getBookings error:", error);

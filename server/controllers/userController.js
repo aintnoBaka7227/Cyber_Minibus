@@ -1,6 +1,7 @@
 // server/controllers/userController.js
 import Booking from "../models/Booking.js";
 import User from "../models/User.js";
+import Destination from "../models/Destination.js";
 import mongoose from "mongoose";
 
 // helper to check authorization: allow if requester is same user or is admin
@@ -31,7 +32,44 @@ export const getUserBookings = async (req, res) => {
       .populate({ path: "tripInstanceID", model: "TripInstance" })
       .populate({ path: "userID", select: "username email firstName lastName" });
 
-    return res.status(200).json({ success: true, bookings });
+    // Manually enrich bookings with destination and trip template data
+    const enrichedBookings = await Promise.all(
+      bookings.map(async (booking) => {
+        const bookingObj = booking.toObject();
+        
+        if (bookingObj.tripInstanceID?.tripTemplateID) {
+          const tripTemplateId = bookingObj.tripInstanceID.tripTemplateID;
+          
+          // Find the destination that contains this trip template
+          const destination = await Destination.findOne({
+            "tripTemplates._id": tripTemplateId
+          });
+          
+          if (destination) {
+            // Find the specific trip template in the destination
+            const tripTemplate = destination.tripTemplates.find(
+              template => template._id.toString() === tripTemplateId.toString()
+            );
+            
+            if (tripTemplate) {
+              // Replace tripTemplateID with enriched data
+              bookingObj.tripInstanceID.tripTemplateID = {
+                _id: destination._id,
+                name: destination.name,
+                mainphoto: destination.mainphoto,
+                price: tripTemplate.price,
+                startPoints: tripTemplate.startPoints,
+                departureTimes: tripTemplate.departureTimes
+              };
+            }
+          }
+        }
+        
+        return bookingObj;
+      })
+    );
+
+    return res.status(200).json({ success: true, bookings: enrichedBookings });
   } catch (error) {
     console.error("getUserBookings error:", error);
     return res.status(500).json({

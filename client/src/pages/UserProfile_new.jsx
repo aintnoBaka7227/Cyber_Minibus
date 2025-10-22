@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { Camera, Edit, Save, Eye, EyeOff } from "lucide-react";
 import Loading from "../components/Loading";
 import BlurCircle from "../components/BlurCircle";
-import { users as mockUsers } from "../assets/dummy";
+import { useAppContext } from "../context/AppContext";
+import { userApi } from "../api";
+import toast from "react-hot-toast";
 
 const UserProfile = () => {
+  const { user } = useAppContext();
   const [userInfo, setUserInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -17,42 +20,34 @@ const UserProfile = () => {
   });
 
   const getUserProfile = async () => {
-    try {
-      // Using mock data for development - replace with real API call later
-      // Simulating the first user (Alice) as the logged-in user
-      const mockUser = mockUsers.find(user => user.role === "client");
-      setUserInfo(mockUser);
+    if (!user?._id) {
       setIsLoading(false);
-      
-      // Real API call (commented out for now)
-      /*
-      const { axios, getToken } = useAppContext();
-      const { data } = await axios.get("/api/user/profile", {
-        headers: { Authorization: `Bearer ${await getToken()}` },
-      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const data = await userApi.getUserProfile(user._id);
 
       if (data.success) {
         setUserInfo(data.user);
+      } else {
+        toast.error("Failed to load profile");
       }
-      */
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching profile:", error);
+      if (error.response?.status !== 401) {
+        toast.error(error.response?.data?.message || "Failed to load profile");
+      }
+    } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    // Simulate user being logged in for development
     getUserProfile();
-    
-    // Real implementation (commented out for now)
-    /*
-    const { user } = useAppContext();
-    if (user) {
-      getUserProfile();
-    }
-    */
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const handleAvatarChange = (event) => {
     const file = event.target.files[0];
@@ -65,19 +60,34 @@ const UserProfile = () => {
     }
   };
 
-  const handleSaveProfile = () => {
-    // For now, just toggle edit mode - implement real save later
-    setIsEditing(false);
-    console.log("Profile saved:", userInfo);
-    console.log("Password data:", passwords);
-    
-    // Real save implementation (commented out for now)
-    /*
-    const { axios, getToken } = useAppContext();
-    const { data } = await axios.put("/api/user/profile", userInfo, {
-      headers: { Authorization: `Bearer ${await getToken()}` },
-    });
-    */
+  const handleSaveProfile = async () => {
+    if (!user?._id) {
+      toast.error("User not authenticated");
+      return;
+    }
+
+    try {
+      const updateData = {
+        firstName: userInfo.firstName,
+        lastName: userInfo.lastName,
+        phone: userInfo.phone,
+        address: userInfo.address,
+        email: userInfo.email,
+      };
+
+      const data = await userApi.updateUserProfile(user._id, updateData);
+
+      if (data.success) {
+        setUserInfo(data.user);
+        setIsEditing(false);
+        toast.success("Profile updated successfully");
+      } else {
+        toast.error("Failed to update profile");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error(error.response?.data?.message || "Failed to update profile");
+    }
   };
 
   const handleInputChange = (field, value) => {

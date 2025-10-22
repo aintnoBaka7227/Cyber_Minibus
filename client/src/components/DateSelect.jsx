@@ -24,6 +24,14 @@ const DateSelect = ({ id, selectedLocation }) => {
   // Get the 5-day window
   const visibleDates = allDates.slice(startIdx, startIdx + 5);
 
+  // Format a Date to local YYYY-MM-DD (no timezone shift)
+  const toLocalYMD = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
   const onDateClick = (date) => {
     if (!selectedLocation || selectedLocation === "Start from ...") {
       // Show popup message and scroll to location selection
@@ -34,7 +42,8 @@ const DateSelect = ({ id, selectedLocation }) => {
       }
       return;
     }
-    setSelected(date.toISOString().slice(0, 10)); // Only record date (YYYY-MM-DD)
+    // Use local date string to avoid UTC shift (off-by-one)
+    setSelected(toLocalYMD(date)); // YYYY-MM-DD
   };
 
   const onBookHandler = () => {
@@ -75,9 +84,9 @@ const DateSelect = ({ id, selectedLocation }) => {
               {visibleDates.map((date) => (
                 <button
                   onClick={() => onDateClick(date)}
-                  key={date.toISOString()}
+                  key={toLocalYMD(date)}
                   className={`flex flex-col items-center justify-center h-14 w-14 aspect-square rounded cursor-pointer ${
-                    selected === date.toISOString().slice(0, 10)
+                    selected === toLocalYMD(date)
                       ? "bg-primary text-white"
                       : "border border-primary/70"
                   }`}

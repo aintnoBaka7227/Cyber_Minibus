@@ -13,7 +13,7 @@ import { Toaster } from "react-hot-toast";
 import Footer from "./components/Footer";
 import Layout from "./pages/admin/Layout";
 import Dashboard from "./pages/admin/Dashboard";
-import AddDestinations from "./pages/admin/AddDestinations";
+import AddDestinations from "./pages/admin/AddDestinations_new";
 import ListBookings from "./pages/admin/ListBookings";
 import ListUsers from "./pages/admin/ListUsers";
 import Loading from "./components/Loading";

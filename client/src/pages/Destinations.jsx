@@ -1,10 +1,42 @@
+import { useEffect, useState } from "react";
 import BlurCircle from "../components/BlurCircle";
 import DestinationCard from "../components/DestinationCard";
-import { destinations } from "../assets/dummy";
+import { destinationApi } from "../api";
+import toast from "react-hot-toast";
 
 const Destinations = () => {
-   
-  // const { shows } = useAppContext();
+  const [destinations, setDestinations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDestinations = async () => {
+      try {
+        setLoading(true);
+        const data = await destinationApi.getAllDestinations();
+        if (data.success) {
+          setDestinations(data.destinations);
+        } else {
+          toast.error("Failed to load destinations");
+        }
+      } catch (error) {
+        console.error("Error fetching destinations:", error);
+        toast.error(error.response?.data?.message || "Failed to load destinations");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDestinations();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mb-4"></div>
+        <p className="text-gray-400">Loading destinations...</p>
+      </div>
+    );
+  }
 
   return destinations.length > 0 ? (
     <div className="relative my-40 mb-60 px-6 md:px-16 lg:px-40 xl:px-44 overflow-hidden min-h-[80vh]">

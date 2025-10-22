@@ -3,6 +3,108 @@ import TripInstance from "../models/TripInstance.js";
 import Destination from "../models/Destination.js";
 import User from "../models/User.js";
 
+// GET /dashboard-stats
+export const getDashboardStats = async (req, res) => {
+  try {
+    // Get total bookings count
+    const totalBookings = await Booking.countDocuments();
+    
+    // Get total users count (clients only)
+    const totalUsers = await User.countDocuments({ role: "client" });
+    
+    // Get active routes (destinations count)
+    const activeRoutes = await Destination.countDocuments();
+    
+    // Calculate total revenue from paid bookings
+    const revenueAggregation = await Booking.aggregate([
+      { $match: { status: "paid" } },
+      {
+        $lookup: {
+          from: TripInstance.collection.name,
+          localField: "tripInstanceID",
+          foreignField: "_id",
+          as: "tripInstance",
+        },
+      },
+      { $unwind: "$tripInstance" },
+      {
+        $lookup: {
+          from: Destination.collection.name,
+          let: { tripTemplateID: "$tripInstance.tripTemplateID" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$$tripTemplateID", "$tripTemplates._id"],
+                },
+              },
+            },
+            {
+              $project: {
+                tripTemplate: {
+                  $first: {
+                    $filter: {
+                      input: "$tripTemplates",
+                      as: "template",
+                      cond: { $eq: ["$$tripTemplateID", "$$template._id"] },
+                    },
+                  },
+                },
+              },
+            },
+          ],
+          as: "destination",
+        },
+      },
+      {
+        $addFields: {
+          destination: { $first: "$destination" },
+        },
+      },
+      {
+        $addFields: {
+          pricePerSeat: "$destination.tripTemplate.price",
+          seatCount: { $size: "$seats" },
+        },
+      },
+      {
+        $addFields: {
+          bookingRevenue: {
+            $multiply: [
+              { $ifNull: ["$pricePerSeat", 0] },
+              { $ifNull: ["$seatCount", 0] },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$bookingRevenue" },
+        },
+      },
+    ]);
+    
+    const totalRevenue = revenueAggregation.length > 0 ? revenueAggregation[0].totalRevenue : 0;
+    
+    return res.json({
+      success: true,
+      data: {
+        totalBookings,
+        totalRevenue,
+        activeRoutes,
+        totalUsers,
+      },
+    });
+  } catch (error) {
+    console.error("getDashboardStats error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch dashboard statistics",
+    });
+  }
+};
+
 const parsePositiveInt = (value, fallback) => {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
