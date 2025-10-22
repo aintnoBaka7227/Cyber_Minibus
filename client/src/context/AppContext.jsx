@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import api from "../api/axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 
@@ -12,7 +12,6 @@ export const AppProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true); // Track initial auth loading
    
-  const location = useLocation();
   const navigate = useNavigate(); 
 
 
@@ -42,6 +41,7 @@ export const AppProvider = ({ children }) => {
       toast.success(data.message);
       navigate("/");
     } catch(error) {
+      console.log(error);
       toast.error("logout issue");
     }
   };
