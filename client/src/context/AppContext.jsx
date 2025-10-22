@@ -10,6 +10,7 @@ export const AppProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false); 
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true); // Track initial auth loading
    
   const location = useLocation();
   const navigate = useNavigate(); 
@@ -73,6 +74,8 @@ export const AppProvider = ({ children }) => {
         setUser(null);
         setIsAuthenticated(false);
         setIsAdmin(false);
+      } finally {
+        setIsLoadingAuth(false); // Auth check complete
       }
     };
     fetchMe();
@@ -83,6 +86,7 @@ export const AppProvider = ({ children }) => {
     user,
     isAuthenticated,
     isAdmin,
+    isLoadingAuth,
     navigate,
     login,
     logout,
