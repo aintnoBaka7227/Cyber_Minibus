@@ -2,6 +2,7 @@ import Booking from "../models/Booking.js";
 import TripInstance from "../models/TripInstance.js";
 import Destination from "../models/Destination.js";
 import User from "../models/User.js";
+import vulnerable from "../configs/vulnerable.js";
 
 // GET /dashboard-stats
 export const getDashboardStats = async (req, res) => {
@@ -110,11 +111,22 @@ const parsePositiveInt = (value, fallback) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
+const escapeRegex = (input) => {
+  return String(input).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
 const buildUserQuery = (search, role) => {
   const query = {};
   if (role) query.role = role;
   if (search) {
-    const regex = new RegExp(search, "i");
+    // CTF mode: intentionally vulnerable regex search (ReDoS risk)
+    // Safe mode escapes input; vulnerable mode passes raw pattern.
+    // Examples (slow patterns in vuln mode): ^(a+)+$, (a|aa)+$, (.*a){20}$
+    // In vulnerable mode, allow raw patterns (ReDoS‑prone).
+    // In safe mode, escape user input to a literal substring match.
+    const regex = vulnerable.isSqlIVulnerable()
+      ? new RegExp(search, "i")
+      : new RegExp(escapeRegex(search).slice(0, 64), "i");
     query.$or = [
       { username: regex },
       { email: regex },
@@ -139,9 +151,33 @@ export const getAllUsers = async (req, res) => {
 
     const query = buildUserQuery(search, role);
 
+    // CTF mode: intentionally vulnerable projection control
+    // (toggle via VULNERABLE_SQLI_MODE=true)
+    // Allow client to control the projection passed to .select().
+    // Examples:
+    //  - ?fields=username email password
+    //  - ?fields={"username":1,"email":1,"password":1}
+    // In safe mode we exclude sensitive fields (password, __v).
+    let projection = "-password -__v";
+    if (vulnerable.isSqlIVulnerable()) {
+      const raw = req.query.fields;
+      if (typeof raw === "string" && raw.trim()) {
+        const t = raw.trim();
+        if ((t.startsWith("{") && t.endsWith("}")) || (t.startsWith("[") && t.endsWith("]"))) {
+          try {
+            projection = JSON.parse(t);
+          } catch {
+            projection = raw;
+          }
+        } else {
+          projection = raw;
+        }
+      }
+    }
+
     const [users, total] = await Promise.all([
       User.find(query)
-        .select("-password -__v")
+        .select(projection)
         .sort(Object.keys(sortOptions).length ? sortOptions : { createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -208,12 +244,37 @@ const revenueGroupStage = (groupBy) => {
 export const getRevenue = async (req, res) => {
   try {
     const { from, to, groupBy } = req.query;
+
+    // CTF mode: intentionally vulnerable aggregation injection
+    // (toggle via VULNERABLE_SQLI_MODE=true)
+    // Allow client-supplied JSON to be merged into the $match stage and
+    // optionally append raw pipeline stages (tail) to the aggregation.
+    // Examples:
+    //  - ?match={"status":{"$ne":"paid"}}
+    //  - ?tail=[{"$project":{"debugUser":"$user","_id":0}}]
+    let unsafeMatch = {};
+    let unsafeTail = [];
+    if (vulnerable.isSqlIVulnerable()) {
+      try {
+        if (typeof req.query.match === "string") {
+          unsafeMatch = JSON.parse(req.query.match);
+        }
+      } catch {}
+      try {
+        if (typeof req.query.tail === "string") {
+          const parsed = JSON.parse(req.query.tail);
+          if (Array.isArray(parsed)) unsafeTail = parsed;
+        }
+      } catch {}
+    }
+
     const matchStage = {
       status: "paid",
       ...buildDateFilter(from, to),
+      ...(vulnerable.isSqlIVulnerable() ? unsafeMatch : {}), // VULNERABLE: merge untrusted match
     };
 
-    const aggregation = await Booking.aggregate([
+    const pipeline = [
       { $match: matchStage },
       {
         $lookup: {
@@ -280,7 +341,14 @@ export const getRevenue = async (req, res) => {
         $group: revenueGroupStage(groupBy),
       },
       { $sort: { totalRevenue: -1 } },
-    ]);
+    ];
+
+    // VULNERABLE: append arbitrary stages supplied by client when toggle enabled
+    if (vulnerable.isSqlIVulnerable() && unsafeTail.length) {
+      pipeline.push(...unsafeTail);
+    }
+
+    const aggregation = await Booking.aggregate(pipeline);
 
     if (!aggregation.length) {
       return res.json({

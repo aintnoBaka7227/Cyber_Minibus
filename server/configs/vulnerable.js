@@ -11,4 +11,11 @@ const isVulnerable = () => {
   return String(process.env.VULNERABLE_MODE || "false").toLowerCase() === "true";
 };
 
-export default { isVulnerable };
+// Toggle for NoSQL injection demo in auth (CTF only).
+// Read from process.env.VULNERABLE_SQLI_MODE (string "true").
+// Default: false (safe).
+const isSqlIVulnerable = () => {
+  return String((process.env.VULNERABLE_MODE && process.env.VULNERABLE_SQLI_MODE) || "false").toLowerCase() === "true";
+};
+
+export default { isVulnerable, isSqlIVulnerable };
