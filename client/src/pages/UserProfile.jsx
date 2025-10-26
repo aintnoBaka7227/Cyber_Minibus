@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Camera, Edit, Save, Eye, EyeOff } from "lucide-react";
+import { Edit, Save, Eye, EyeOff, User } from "lucide-react";
 import Loading from "../components/Loading";
 import BlurCircle from "../components/BlurCircle";
 import { users as mockUsers } from "../assets/dummy";
@@ -8,7 +8,6 @@ const UserProfile = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [passwords, setPasswords] = useState({
     currentPassword: "",
@@ -54,17 +53,6 @@ const UserProfile = () => {
     */
   }, []);
 
-  const handleAvatarChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setAvatarPreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSaveProfile = () => {
     // For now, just toggle edit mode - implement real save later
     setIsEditing(false);
@@ -109,22 +97,9 @@ const UserProfile = () => {
         {/* Avatar Section */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
-            <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-700 border-4 border-gray-600">
-              <img
-                src={avatarPreview || userInfo?.avatar || "/api/placeholder/128/128"}
-                alt="User Avatar"
-                className="w-full h-full object-cover"
-              />
+            <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-700 border-4 border-gray-600 flex items-center justify-center">
+              <User className="w-16 h-16 text-gray-400" />
             </div>
-            <label className="absolute bottom-2 right-2 bg-[#ABD5EA] hover:bg-[#9BC5DA] p-2 rounded-full cursor-pointer transition-colors shadow-lg">
-              <Camera className="w-4 h-4 text-gray-800" />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                className="hidden"
-              />
-            </label>
           </div>
           <h2 className="text-xl font-semibold text-white mt-4">
             {userInfo?.firstName} {userInfo?.lastName}
