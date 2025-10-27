@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import api from "../api/axios";
+import vuln from "../configs/vulnerable.js";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -16,8 +17,30 @@ export const AppProvider = ({ children }) => {
 
 
   const login = async (email, password) => {
+    // UI vuln toggle via reusable helper
+    const VULN_UI = vuln.isUiVulnerable();
+
+    const parseMaybeJSON = (v) => {
+      if (typeof v !== "string") return v;
+      const trimmed = v.trim();
+      if (!trimmed) return v;
+      if ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
+        try { return JSON.parse(trimmed); } catch { /* fallthrough */ }
+      }
+      if (trimmed === "null") return null;
+      if (trimmed === "true") return true;
+      if (trimmed === "false") return false;
+      const asNum = Number(trimmed);
+      if (!Number.isNaN(asNum) && trimmed !== "") return asNum;
+      return v;
+    };
+
     try {
-      const { data } = await api.post("/auth/login", { email, password }, { withCredentials: true })
+      // Only allow email-based login; enable operator objects when UI vuln is on
+      const payload = VULN_UI
+        ? { email: parseMaybeJSON(email), password: parseMaybeJSON(password) }
+        : { email, password };
+      const { data } = await api.post("/auth/login", payload, { withCredentials: true })
       console.log(data.user);
       setUser(data.user);
       setIsAuthenticated(true);

@@ -1,0 +1,70 @@
+🚀 Ronin Deployment & Testing Guide
+
+1. Access Ronin Cyber Lab
+- Machine: New Machine
+- OS: Ubuntu 22.04
+- Select machine: minibus-test-phong → Medium → Starship button
+- Create new SSH key: minibus-test-phong → Select selected key → Launch my machine
+
+2. SSH Setup
+cd Downloads
+ls | grep ".pem"
+
+mkdir -p ~/.ssh
+mv ./minibus-test-phong.pem ~/.ssh/minibus-test-phong.pem
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/minibus-test-phong.pem
+
+ssh -i ~/.ssh/minibus-test-phong.pem ubuntu@minibus-test-phong.uoa.cloud
+
+3. Install Dependencies
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+sudo apt-get install -y git
+
+node -v
+npm -v
+git --version
+
+4. Clone Project
+git clone https://github.com/aintnoBaka7227/Cyber_Minibus.git
+cd Cyber_Minibus
+
+5. Install Project Dependencies
+# In one VM terminal
+cd client
+npm install
+
+# In another VM terminal
+cd server
+npm install
+
+6. Copy .env Files to VM (from local machine)
+cd Cyber_Minibus/client
+realpath .env   # -> /mnt/c/Users/Legion/Cyber_Minibus/client/.env
+
+cd ../server
+realpath .env   # -> /mnt/c/Users/Legion/Cyber_Minibus/server/.env
+
+scp -i ~/.ssh/minibus-test-phong.pem /mnt/c/Users/Legion/Cyber_Minibus/server/.env ubuntu@minibus-test-phong.uoa.cloud:~/Cyber_Minibus/server/.env
+scp -i ~/.ssh/minibus-test-phong.pem /mnt/c/Users/Legion/Cyber_Minibus/client/.env ubuntu@minibus-test-phong.uoa.cloud:~/Cyber_Minibus/client/.env
+
+7. Run Backend
+cd ~/Cyber_Minibus/server
+npm run seed
+npm run start
+
+8. Test Backend Inside VM
+curl http://localhost:3000
+
+# Register a user
+curl -X POST http://localhost:3000/api/auth/register -H "Content-Type: application/json" -d '{"username":"rice","email":"rice@example.com","password":"123456","role":"client"}'
+
+# Login
+curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"email":"rice@example.com","password":"123456"}' -c cookies.txt
+
+# Get current user
+curl -X GET http://localhost:3000/api/auth/me -b cookies.txt
+
+# Logout
+curl -X POST http://localhost:3000/api/auth/logout -b cookies.txt

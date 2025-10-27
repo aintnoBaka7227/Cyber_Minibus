@@ -2,6 +2,7 @@
 import Booking from "../models/Booking.js";
 import User from "../models/User.js";
 import Destination from "../models/Destination.js";
+import vulnerable from "../configs/vulnerable.js";
 import mongoose from "mongoose";
 
 // helper to check authorization: allow if requester is same user or is admin
@@ -120,7 +121,32 @@ export const updateUserProfile = async (req, res) => {
       return res.status(403).json({ success: false, message: "Forbidden: not authorized" });
     }
 
-    // only allow certain fields to be updated
+    // VULNERABLE BRANCH (toggle via VULNERABLE_SQLI_MODE=true):
+    // Allow raw update payload from client, including MongoDB update operators
+    // Example attack bodies:
+    //  - { "$set": { "role": "admin" } }
+    //  - { "$unset": { "email": 1 } }
+    //  - { "address": "new", "$rename": { "username": "uname" } }
+    // This bypasses the allowlist and permits privilege escalation or destructive ops.
+    if (vulnerable.isSqlIVulnerable()) {
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        req.body, // VULNERABLE: apply client body directly (operators allowed)
+        { new: true, runValidators: false }
+      ).select("-password");
+
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Profile updated (vulnerable mode)",
+        user: updatedUser,
+      });
+    }
+
+    // SAFE BRANCH (default): only allow certain fields to be updated
     const allowedFields = ["username", "firstName", "lastName", "email", "phone", "address"];
     const updates = {};
     for (const field of allowedFields) {
@@ -129,11 +155,10 @@ export const updateUserProfile = async (req, res) => {
       }
     }
 
-    // find and update
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updates },
-      { new: true, runValidators: true } // return updated doc
+      { new: true, runValidators: true }
     ).select("-password"); // exclude password
 
     if (!updatedUser) {
