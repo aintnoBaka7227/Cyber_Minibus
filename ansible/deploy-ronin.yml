@@ -175,10 +175,10 @@
 
     - name: Seed database once
       shell: |
-        npm run seed && touch /var/lib/minibus_seeded
+        npm run seed && touch {{ project_dir }}/.seeded
       args:
         chdir: "{{ project_dir }}/server"
-        creates: /var/lib/minibus_seeded
+        creates: "{{ project_dir }}/.seeded"
       become_user: "{{ ansible_user }}"
 
     - name: Install systemd unit for backend
