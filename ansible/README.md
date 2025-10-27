@@ -16,6 +16,7 @@ It follows the steps in `deployment_guideline.txt`, but automates:
 - `ansible/templates/server.env.j2` — server `.env` template
 - `ansible/templates/client.env.j2` — client `.env` template
 - `ansible/templates/minibus-server.service.j2` — systemd unit
+ 
 
 ## Usage
 1) Update inventory with your Ronin host and SSH key:
@@ -35,5 +36,4 @@ ansible-playbook -i ansible/inventory.ini ansible/deploy-ronin.yml
 - MongoDB runs in Docker (from repo `docker-compose.yml`).
 - Client build is optional (`client_build: false` by default). If enabled,
   you can serve it with your preferred method (e.g., Nginx) from `client/dist`.
-- CORS: server currently allows `http://localhost:5173`. Adjust code/env if
-  you’ll access from a different domain.
+ 

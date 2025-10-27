@@ -12,3 +12,6 @@ services:
       retries: 30
     restart: always                      # declare it
 
+volumes:
+  mongo-data:
+
