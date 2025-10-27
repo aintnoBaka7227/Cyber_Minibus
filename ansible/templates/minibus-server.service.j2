@@ -1,0 +1,17 @@
+[Unit]
+Description=Cyber Minibus Backend Service
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory={{ project_dir }}/server
+EnvironmentFile={{ project_dir }}/server/.env
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=5
+User={{ ansible_user }}
+
+[Install]
+WantedBy=multi-user.target
+

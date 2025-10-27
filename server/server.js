@@ -18,6 +18,7 @@ await connectDB();
 app.use(express.json());
 app.use(cors({
   origin: "http://localhost:5173",
+  // origin: true if want any origin
   credentials: true,
 }));
 

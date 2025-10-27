@@ -1,0 +1,174 @@
+---
+- name: Deploy Cyber_Minibus to Ronin
+  hosts: ronin
+  become: yes
+  gather_facts: yes
+
+  vars:
+    # --- Required/Recommended overrides ---
+    jwt_secret: "CHANGE_ME_generate_a_strong_secret"
+    vite_base_url: "http://localhost:3000/api"
+
+    # --- Optional toggles ---
+    client_build: false
+    server_vulnerable_sqli_mode: false
+    server_vulnerable_mode: false
+    client_vulnerable_ui_mode: false
+    vite_currency: "$"
+
+    # Paths and repo
+    project_dir: "/home/{{ ansible_user }}/Cyber_Minibus"
+    repo_url: "https://github.com/aintnoBaka7227/Cyber_Minibus.git"
+    mongodb_port: 27017
+
+  tasks:
+    - name: Ensure apt cache is up to date
+      apt:
+        update_cache: yes
+
+    - name: Install base packages
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - apt-transport-https
+          - git
+          - unzip
+        state: present
+
+    - name: Install Node.js 20.x repo
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+      args:
+        executable: /bin/bash
+      changed_when: false
+
+    - name: Install Node.js
+      apt:
+        name: nodejs
+        state: present
+
+    - name: Install Docker using get.docker.com script
+      shell: |
+        curl -fsSL https://get.docker.com | CHANNEL=stable sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Enable and start Docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Install docker-compose-plugin
+      apt:
+        name: docker-compose-plugin
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Ensure project directory exists
+      file:
+        path: "{{ project_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Clone or update repo
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ project_dir }}"
+        version: HEAD
+        update: yes
+        accept_hostkey: yes
+      become_user: "{{ ansible_user }}"
+
+    - name: Ensure server .env from template
+      template:
+        src: templates/server.env.j2
+        dest: "{{ project_dir }}/server/.env"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+
+    - name: Ensure client .env from template
+      template:
+        src: templates/client.env.j2
+        dest: "{{ project_dir }}/client/.env"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+
+    - name: Install server dependencies (npm ci if lockfile present)
+      shell: |
+        if [ -f package-lock.json ]; then npm ci; else npm install --no-progress; fi
+      args:
+        chdir: "{{ project_dir }}/server"
+      become_user: "{{ ansible_user }}"
+
+    - name: Install client dependencies (npm ci if lockfile present)
+      shell: |
+        if [ -f package-lock.json ]; then npm ci; else npm install --no-progress; fi
+      args:
+        chdir: "{{ project_dir }}/client"
+      become_user: "{{ ansible_user }}"
+
+    - name: Build client (optional)
+      when: client_build
+      shell: npm run build
+      args:
+        chdir: "{{ project_dir }}/client"
+      become_user: "{{ ansible_user }}"
+
+    - name: Bring up MongoDB via Docker Compose
+      shell: docker compose up -d
+      args:
+        chdir: "{{ project_dir }}"
+
+    - name: Wait for Mongo port to be open
+      wait_for:
+        host: 127.0.0.1
+        port: "{{ mongodb_port }}"
+        delay: 2
+        timeout: 60
+
+    - name: Seed database once
+      shell: |
+        npm run seed && touch /var/lib/minibus_seeded
+      args:
+        chdir: "{{ project_dir }}/server"
+        creates: /var/lib/minibus_seeded
+      become_user: "{{ ansible_user }}"
+
+    - name: Install systemd unit for backend
+      template:
+        src: templates/minibus-server.service.j2
+        dest: /etc/systemd/system/minibus-server.service
+        mode: "0644"
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start backend service
+      systemd:
+        name: minibus-server
+        enabled: yes
+        state: started
+
+    - name: Verify backend is responding
+      shell: |
+        curl -sf http://localhost:3000 || true
+      register: backend_check
+      changed_when: false
+      failed_when: false
+
+    - name: Show backend check output
+      debug:
+        msg: "Backend check: {{ backend_check.stdout | default('') }}"
