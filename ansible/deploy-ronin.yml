@@ -122,7 +122,7 @@
       ansible.builtin.git:
         repo: "{{ repo_url }}"
         dest: "{{ project_dir }}"
-        version: feature/add-nosql-injection
+        version: main
         update: yes
         force: yes
         accept_hostkey: yes
