@@ -1,0 +1,16 @@
+[Unit]
+Description=Cyber Minibus Frontend (Vite Dev)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory={{ project_dir }}/client
+EnvironmentFile={{ project_dir }}/client/.env
+ExecStart=/usr/bin/npm run dev -- --host localhost --port {{ frontend_port }}
+Restart=always
+RestartSec=3
+User={{ ansible_user }}
+
+[Install]
+WantedBy=multi-user.target
+

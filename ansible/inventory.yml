@@ -1,0 +1,14 @@
+## Ansible Inventory (YAML)
+## - Global defaults under `all: vars`
+## - Host groups under `all: children`
+
+all:
+  vars:
+    ansible_user: ubuntu  # default SSH user for all hosts
+    ansible_ssh_private_key_file: ~/.ssh/minibus-test-phong.pem  # omit if using ssh-agent
+  children:
+    ronin:        # group targeted by the playbook (hosts: ronin)
+      hosts:
+        ronin-vm:  
+          ansible_host: minibus-test-phong.uoa.cloud  # actual DNS/IP to connect
+

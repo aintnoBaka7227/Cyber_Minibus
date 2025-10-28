@@ -11,9 +11,11 @@
 
     # --- Optional toggles ---
     client_build: false
-    server_vulnerable_sqli_mode: false
-    server_vulnerable_mode: false
-    client_vulnerable_ui_mode: false
+    frontend_dev_enabled: true
+    frontend_port: 5173
+    server_vulnerable_sqli_mode: true
+    server_vulnerable_mode: true
+    client_vulnerable_ui_mode: true
     vite_currency: "$"
 
     # Paths and repo
@@ -23,11 +25,11 @@
 
   tasks:
     - name: Ensure apt cache is up to date
-      apt:
+      ansible.builtin.apt:
         update_cache: yes
 
     - name: Install base packages
-      apt:
+      ansible.builtin.apt:
         name:
           - ca-certificates
           - curl
@@ -39,19 +41,19 @@
         state: present
 
     - name: Install Node.js 20.x repo
-      shell: |
+      ansible.builtin.shell: |
         curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
       args:
         executable: /bin/bash
       changed_when: false
 
     - name: Install Node.js
-      apt:
+      ansible.builtin.apt:
         name: nodejs
         state: present
 
     - name: Prepare Docker APT prerequisites
-      apt:
+      ansible.builtin.apt:
         name:
           - ca-certificates
           - curl
@@ -59,31 +61,31 @@
         state: present
 
     - name: Create keyrings directory for Docker
-      file:
+      ansible.builtin.file:
         path: /etc/apt/keyrings
         state: directory
         mode: "0755"
 
     - name: Install Docker APT GPG key
-      shell: |
+      ansible.builtin.shell: |
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
         chmod a+r /etc/apt/keyrings/docker.gpg
       args:
         creates: /etc/apt/keyrings/docker.gpg
 
     - name: Add Docker APT repository
-      copy:
+      ansible.builtin.copy:
         dest: /etc/apt/sources.list.d/docker.list
         content: |
           deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
         mode: "0644"
 
     - name: Update apt cache (Docker repo)
-      apt:
+      ansible.builtin.apt:
         update_cache: yes
 
     - name: Install Docker engine and plugins
-      apt:
+      ansible.builtin.apt:
         name:
           - docker-ce
           - docker-ce-cli
@@ -93,41 +95,41 @@
         state: present
 
     - name: Enable and start Docker service
-      systemd:
+      ansible.builtin.systemd:
         name: docker
         enabled: yes
         state: started
 
     - name: Install docker-compose-plugin
-      apt:
+      ansible.builtin.apt:
         name: docker-compose-plugin
         state: present
 
     - name: Add user to docker group
-      user:
+      ansible.builtin.user:
         name: "{{ ansible_user }}"
         groups: docker
         append: yes
 
     - name: Ensure project directory exists
-      file:
+      ansible.builtin.file:
         path: "{{ project_dir }}"
         state: directory
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
 
     - name: Clone or update repo
-      git:
+      ansible.builtin.git:
         repo: "{{ repo_url }}"
         dest: "{{ project_dir }}"
-        version: HEAD
+        version: main
         update: yes
         force: yes
         accept_hostkey: yes
       become_user: "{{ ansible_user }}"
 
     - name: Ensure server .env from template
-      template:
+      ansible.builtin.template:
         src: templates/server.env.j2
         dest: "{{ project_dir }}/server/.env"
         owner: "{{ ansible_user }}"
@@ -135,7 +137,7 @@
         mode: "0644"
 
     - name: Ensure client .env from template
-      template:
+      ansible.builtin.template:
         src: templates/client.env.j2
         dest: "{{ project_dir }}/client/.env"
         owner: "{{ ansible_user }}"
@@ -143,67 +145,86 @@
         mode: "0644"
 
     - name: Install server dependencies (npm install)
-      shell: npm install --no-progress --omit=dev
+      ansible.builtin.shell: npm install --no-progress --omit=dev
       args:
         chdir: "{{ project_dir }}/server"
       become_user: "{{ ansible_user }}"
 
     - name: Install client dependencies (npm install)
-      shell: npm install --no-progress
+      ansible.builtin.shell: npm install --no-progress
       args:
         chdir: "{{ project_dir }}/client"
       become_user: "{{ ansible_user }}"
 
-    - name: Build client (optional)
+    - name: Install systemd unit for Vite dev (optional)
+      when: frontend_dev_enabled
+      block:
+        - name: Install frontend dev systemd unit
+          ansible.builtin.template:
+            src: templates/minibus-frontend-dev.service.j2
+            dest: /etc/systemd/system/minibus-frontend-dev.service
+            mode: "0644"
+
+        - name: Reload systemd (frontend)
+          ansible.builtin.systemd:
+            daemon_reload: yes
+
+        - name: Enable and start frontend dev service
+          ansible.builtin.systemd:
+            name: minibus-frontend-dev
+            enabled: yes
+            state: started
+
+    - name: Build client
       when: client_build
-      shell: npm run build
+      ansible.builtin.shell: npm run build
       args:
         chdir: "{{ project_dir }}/client"
       become_user: "{{ ansible_user }}"
 
     - name: Bring up MongoDB via Docker Compose
-      shell: docker compose up -d
+      ansible.builtin.shell: docker compose up -d
       args:
         chdir: "{{ project_dir }}"
 
     - name: Wait for Mongo port to be open
-      wait_for:
+      ansible.builtin.wait_for:
         host: 127.0.0.1
         port: "{{ mongodb_port }}"
         delay: 2
         timeout: 60
 
     - name: Seed database once
-      shell: |
-        npm run seed && touch /var/lib/minibus_seeded
+      ansible.builtin.shell: |
+        npm run seed && touch {{ project_dir }}/.seeded
       args:
         chdir: "{{ project_dir }}/server"
-        creates: /var/lib/minibus_seeded
+        creates: "{{ project_dir }}/.seeded"
       become_user: "{{ ansible_user }}"
 
     - name: Install systemd unit for backend
-      template:
+      ansible.builtin.template:
         src: templates/minibus-server.service.j2
         dest: /etc/systemd/system/minibus-server.service
         mode: "0644"
 
     - name: Reload systemd
-      systemd:
+      ansible.builtin.systemd:
         daemon_reload: yes
 
     - name: Enable and start backend service
-      systemd:
+      ansible.builtin.systemd:
         name: minibus-server
         enabled: yes
         state: started
 
     - name: Verify backend is responding
-      shell: |
+      ansible.builtin.shell: |
         curl -sf http://localhost:3000 || true
       register: backend_check
       changed_when: false
       failed_when: false
 
     - name: Show backend check output
-      debug:
+      ansible.builtin.debug:
         msg: "Backend check: {{ backend_check.stdout | default('') }}"
