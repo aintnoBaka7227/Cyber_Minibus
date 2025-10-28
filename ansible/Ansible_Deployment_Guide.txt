@@ -1,82 +1,155 @@
-Ronin Deployment & Testing Guide with Ansible
-------------------------------------------------
 
-0) Prerequisites (Linux/WSL)
-   # Install Ansible and have either OpenSSL or Node available to generate a JWT secret
-   - Ubuntu/WSL:  sudo apt-get update && sudo apt-get install -y ansible openssl
+Ronin Deployment & Testing Guide (with Ansible)
+===============================================
+
+0) Prerequisites (Linux / WSL)
+------------------------------
+Install Ansible and OpenSSL (or Node) to generate JWT secrets:
+
+    sudo apt-get update && sudo apt-get install -y ansible openssl
 
 1) Create a Ronin VM
-   # In the Ronin Cyber Lab UI
-   - OS: Ubuntu 22.04
-   - Type: T3.MEDIUM
-   - Memory: 4 GiB
-   - Select machine: <machine-name> → Medium → Starship button
-   - Create SSH key: <machine-name> → Select newly created key → Launch my machine
+--------------------
+In the Ronin Cyber Lab UI:
+- OS: Ubuntu 22.04
+- Type: T3.MEDIUM
+- Memory: 4 GiB
+- Select your machine → click Starship.
+- Create an SSH key → select it → Launch my machine.
 
-2) Prepare your SSH key locally
-   # Replace <machine-name> with your chosen VM name (example: minibus-test-phong)
-   cd ~/Downloads
-   ls | grep ".pem"                                 # find the downloaded PEM
-   mkdir -p ~/.ssh                                  # create SSH folder if missing
-   mv ./<machine-name>.pem ~/.ssh/<machine-name>.pem
-   chmod 700 ~/.ssh                                 # secure the directory
-   chmod 600 ~/.ssh/<machine-name>.pem              # secure the key file
+2) Prepare Your SSH Key Locally
+-------------------------------
+Replace <machine-name> with your VM name (e.g., minibus-test-phong):
 
+    cd ~/Downloads
+    ls | grep ".pem"                               # find downloaded PEM file
+    mkdir -p ~/.ssh                                # create SSH directory
+    mv ./<machine-name>.pem ~/.ssh/<machine-name>.pem
+    chmod 700 ~/.ssh                               # secure directory
+    chmod 600 ~/.ssh/<machine-name>.pem            # secure key file
 
-3) Configure inventory (in this repo)
-   # Edit ansible/inventory.yml to point at your VM. Example provided:
-   # all:
-   #   vars:
-   #     ansible_user: ubuntu
-   #     ansible_ssh_private_key_file: ~/.ssh/<machine-name>.pem
-   #   children:
-   #     ronin:
-   #       hosts:
-   #         ronin-vm:
-   #           ansible_host: <machine-name>.uoa.cloud
+3) Configure the Inventory
+--------------------------
+Edit ansible/inventory.yml to match your VM. Example:
 
-4) Run the Ansible deploy
-   # Generate a strong JWT secret on the fly with OpenSSL
-   ansible-playbook -i ansible/inventory.yml ansible/deploy-ronin.yml -e "jwt_secret=$(openssl rand -hex 64)"
+    all:
+      vars:
+        ansible_user: ubuntu
+        ansible_ssh_private_key_file: ~/.ssh/<machine-name>.pem
+      children:
+        ronin:
+          hosts:
+            ronin-vm:
+              ansible_host: <machine-name>.uoa.cloud
 
-   # Optional flags:
-   #  -e client_build=true                 # build the frontend (produces client/dist)
-   #  -e frontend_dev_enabled=true        # run Vite dev as a systemd service on the VM
+3a) Playbook Variables (Environment and Toggles)
+------------------------------------------------
+All defined in vars: inside ansible/deploy-ronin.yml
+You can override them at runtime with -e key=value.
 
-5) What the playbook does
-   # - Installs Node.js 20, Git, Docker + docker-compose plugin
-   # - Clones your repo to ~/Cyber_Minibus (as the SSH user)
-   # - Renders server/.env and client/.env from templates
-   # - Starts MongoDB via docker compose (port 27017)
-   # - Installs server/client dependencies; seeds DB once
-   # - Runs backend via systemd service: minibus-server (port 3000)
+Core Variables
+--------------
+- jwt_secret: Strong random string used to sign JWTs
+  Example: -e "jwt_secret=$(openssl rand -hex 64)"
+- vite_base_url: API base URL for frontend (VITE_BASE_URL)
+  - For local tunneling: http://localhost:3000/api
+  - For VM direct access: http://<vm-host>:3000/api
+- project_dir: Target path on the VM (default /home/<user>/Cyber_Minibus)
+- repo_url: Git repository to clone
+- mongodb_port: MongoDB container port (default 27017)
+- backend_enabled: Whether to install and start the backend systemd service (default true)
+
+Frontend Variables
+------------------
+- client_build: Run npm run build (default false)
+- frontend_dev_enabled: Run Vite dev via systemd (minibus-frontend-dev) (default false)
+- frontend_port: Port for Vite dev (default 5173)
+- vite_currency: Currency symbol (VITE_CURRENCY)
+- client_vulnerable_ui_mode: Enables VITE_VULNERABLE_UI_MODE (default "false")
+
+Backend Security (Demo Only)
+----------------------------
+- server_vulnerable_sqli_mode: Enables SQLi test paths
+- server_vulnerable_mode: Enables additional bypass behavior
+
+Templates
+---------
+- templates/server.env.j2 → server/.env
+- templates/client.env.j2 → client/.env
+
+If environment variables change, restart affected services or rebuild the frontend.
+
+3b) Ansible Folder Structure
+----------------------------
+ansible/inventory.yml                      # Host definitions & SSH vars
+ansible/ansible.cfg                        # Ansible defaults (inventory, output)
+ansible/deploy-ronin.yml                   # Main deployment playbook
+ansible/templates/server.env.j2            # Backend .env template
+ansible/templates/client.env.j2            # Frontend .env template
+ansible/templates/minibus-server.service.j2# Systemd service for backend
+ansible/templates/minibus-frontend-dev.service.j2 # Systemd service for Vite dev
+ansible/DEPLOYMENT_STEPS.txt               # Click-through steps
+ansible/Ansible_Deployment_Guide.txt       # Full guide (this document)
+
+4) Run the Ansible Deployment
+-----------------------------
+Generate a JWT secret and run the playbook:
+
+    ansible-playbook -i ansible/inventory.yml ansible/deploy-ronin.yml -e "jwt_secret=$(openssl rand -hex 64)"
+
+Optional flags:
+
+    -e client_build=true           # build frontend assets (client/dist)
+    -e frontend_dev_enabled=true   # run Vite dev as systemd service
+
+5) What the Playbook Does
+-------------------------
+- Installs Node.js 20, Git, Docker, and Compose plugin
+- Clones your repository to ~/Cyber_Minibus
+- Renders .env files from templates
+- Starts MongoDB via Docker Compose (port 27017)
+- Installs dependencies, seeds MongoDB (first run only)
+- Creates and starts a systemd backend service (minibus-server) on port 3000
 
 6) Verify on the VM
-   ssh ubuntu@<machine-name>.uoa.cloud
-   # API health (should print: server running ....)
-   curl http://localhost:3000
+-------------------
+    ssh -i ~/.ssh/<machine-name>.pem ubuntu@<machine-name>.uoa.cloud
 
-   # MongoDB container status
-   cd ~/Cyber_Minibus && docker compose ps
-   docker logs --tail=100 $(docker compose ps -q mongo)
+API health check:
+    curl http://localhost:3000
 
-7) Using the frontend (development options)
+Check MongoDB container:
+    cd ~/Cyber_Minibus
+    docker compose ps
+    docker logs --tail=100 $(docker compose ps -q mongo)
 
-   # Run dev server on the VM and tunnel
-   #  - Enable service via Ansible: -e frontend_dev_enabled=true
-   #  - Tunnel to your laptop: ssh -N -L 5173:localhost:5173 ubuntu@<machine-name>.uoa.cloud
-   #  - Open:  http://localhost:5173 (talks to Vite on the VM)
-   #  - For API via tunnel too: ssh -N -L 3000:localhost:3000 ubuntu@<machine-name>.uoa.cloud
-   #    then set VITE_BASE_URL=http://localhost:3000/api and restart Vite
+7) Frontend Development Options
+-------------------------------
+Run Vite Dev Server on the VM:
 
-   # Note: this deployment version only allow to test the application locally
+    -e frontend_dev_enabled=true
 
-8) Useful commands
-   # List hosts:     ansible-inventory -i ansible/inventory.yml --graph
-   # Ping hosts:     ansible ronin -i ansible/inventory.yml -m ping
-   # Re-run deploy:  ansible-playbook -i ansible/inventory.yml ansible/deploy-ronin.yml -e "jwt_secret=<hex>"
+Tunnel ports to your local machine:
+
+    ssh -i ~/.ssh/<machine-name>.pem -N -L 5173:localhost:5173 ubuntu@<machine-name>.uoa.cloud
+    ssh -i ~/.ssh/<machine-name>.pem -N -L 3000:localhost:3000 ubuntu@<machine-name>.uoa.cloud
+
+Then open:
+    http://localhost:5173 → frontend
+    http://localhost:3000/api → backend API
+
+Use two terminals for client and server tunnels.
+
+Note: This setup is for local testing only.
+
+8) Useful Commands
+------------------
+    ansible-inventory -i ansible/inventory.yml --graph   # List hosts
+    ansible ronin -i ansible/inventory.yml -m ping       # Ping hosts
+    ansible-playbook -i ansible/inventory.yml ansible/deploy-ronin.yml -e "jwt_secret=<hex>"   # Redeploy
 
 Notes
-   # - Replace <machine-name> and DNS with your actual values.
-   # - Keep JWT secrets out of version control; supply via -e or manage on the VM.
-   # - For production frontend, host client/dist behind Nginx/Apache and proxy /api.
+-----
+- Replace <machine-name> and DNS with actual values.
+- Never commit JWT secrets — pass them via -e or manage on the VM.
+- For production, serve client/dist behind Nginx or Apache and reverse-proxy /api to the backend.

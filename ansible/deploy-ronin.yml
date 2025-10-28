@@ -13,6 +13,7 @@
     client_build: false
     frontend_dev_enabled: true
     frontend_port: 5173
+    backend_enabled: true
     server_vulnerable_sqli_mode: true
     server_vulnerable_mode: true
     client_vulnerable_ui_mode: true
@@ -135,6 +136,7 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: "0644"
+      notify: Restart backend service
 
     - name: Ensure client .env from template
       ansible.builtin.template:
@@ -143,6 +145,7 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: "0644"
+      notify: Restart frontend dev service
 
     - name: Install server dependencies (npm install)
       ansible.builtin.shell: npm install --no-progress --omit=dev
@@ -164,6 +167,7 @@
             src: templates/minibus-frontend-dev.service.j2
             dest: /etc/systemd/system/minibus-frontend-dev.service
             mode: "0644"
+          notify: Restart frontend dev service
 
         - name: Reload systemd (frontend)
           ansible.builtin.systemd:
@@ -207,6 +211,8 @@
         src: templates/minibus-server.service.j2
         dest: /etc/systemd/system/minibus-server.service
         mode: "0644"
+      notify: Restart backend service
+      when: backend_enabled
 
     - name: Reload systemd
       ansible.builtin.systemd:
@@ -217,6 +223,10 @@
         name: minibus-server
         enabled: yes
         state: started
+      when: backend_enabled
+
+    - name: Apply pending service restarts before verification
+      ansible.builtin.meta: flush_handlers
 
     - name: Verify backend is responding
       ansible.builtin.shell: |
@@ -224,7 +234,22 @@
       register: backend_check
       changed_when: false
       failed_when: false
+      when: backend_enabled
 
     - name: Show backend check output
       ansible.builtin.debug:
         msg: "Backend check: {{ backend_check.stdout | default('') }}"
+      when: backend_enabled
+
+  handlers:
+    - name: Restart backend service
+      ansible.builtin.systemd:
+        name: minibus-server
+        state: restarted
+      when: backend_enabled
+
+    - name: Restart frontend dev service
+      ansible.builtin.systemd:
+        name: minibus-frontend-dev
+        state: restarted
+      when: frontend_dev_enabled
